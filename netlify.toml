@@ -1,7 +1,6 @@
 [build]
-  publish = "dist"
-  command = "npm run build"
-  base = "kaha-hostel-control-center"
+  publish = "kaha-hostel-control-center/dist"
+  command = "cd kaha-hostel-control-center && npm run build"
 
 [build.environment]
   NODE_VERSION = "18"
