@@ -1,0 +1,82 @@
+[
+  {
+    "id": "checkout_001",
+    "studentId": "student_004",
+    "studentName": "Maya Gurung",
+    "room": "A-102",
+    "checkoutReason": "Course Completion",
+    "customReason": "",
+    "notes": "Student completed her course and is moving back home. All dues cleared.",
+    "duesCleared": true,
+    "checkoutDate": "2024-01-10T10:00:00Z",
+    "refundCalculation": {
+      "totalRefund": 5000,
+      "securityDeposit": 10000,
+      "deductions": 5000,
+      "breakdown": {
+        "damageCharges": 2000,
+        "cleaningFee": 1000,
+        "utilityCharges": 2000
+      }
+    },
+    "finalBalance": 0,
+    "status": "completed",
+    "processedBy": "admin_001",
+    "approvedBy": "manager_001",
+    "createdAt": "2024-01-10T10:00:00Z",
+    "updatedAt": "2024-01-10T15:30:00Z"
+  },
+  {
+    "id": "checkout_002",
+    "studentId": "student_005",
+    "studentName": "Suresh Thapa",
+    "room": "B-201",
+    "checkoutReason": "Transfer to Another Hostel",
+    "customReason": "",
+    "notes": "Student found accommodation closer to university. Pending dues need to be cleared.",
+    "duesCleared": false,
+    "checkoutDate": "2024-01-12T14:00:00Z",
+    "refundCalculation": {
+      "totalRefund": 0,
+      "securityDeposit": 10000,
+      "deductions": 15000,
+      "breakdown": {
+        "pendingDues": 12000,
+        "damageCharges": 1500,
+        "cleaningFee": 1500
+      }
+    },
+    "finalBalance": -5000,
+    "status": "pending_payment",
+    "processedBy": "admin_001",
+    "approvedBy": null,
+    "createdAt": "2024-01-12T14:00:00Z",
+    "updatedAt": "2024-01-12T14:00:00Z"
+  },
+  {
+    "id": "checkout_003",
+    "studentId": "student_006",
+    "studentName": "Anita Shrestha",
+    "room": "C-305",
+    "checkoutReason": "Personal Reasons",
+    "customReason": "Family emergency - need to return home immediately",
+    "notes": "Emergency checkout due to family situation. Prorated refund calculated.",
+    "duesCleared": true,
+    "checkoutDate": "2024-01-08T09:00:00Z",
+    "refundCalculation": {
+      "totalRefund": 8000,
+      "securityDeposit": 10000,
+      "deductions": 2000,
+      "breakdown": {
+        "cleaningFee": 1000,
+        "utilityCharges": 1000
+      }
+    },
+    "finalBalance": 8000,
+    "status": "completed",
+    "processedBy": "admin_002",
+    "approvedBy": "manager_001",
+    "createdAt": "2024-01-08T09:00:00Z",
+    "updatedAt": "2024-01-08T16:45:00Z"
+  }
+]

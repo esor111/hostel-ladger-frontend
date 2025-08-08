@@ -1,0 +1,58 @@
+[
+  {
+    "id": "hostel_001",
+    "hostelName": "Himalayan Backpackers Hostel",
+    "ownerName": "Ramesh Shrestha",
+    "email": "ramesh@himalayanhostel.com",
+    "phone": "+977-9841234567",
+    "address": "Thamel Marg, Ward No. 26",
+    "province": "Bagmati",
+    "district": "Kathmandu",
+    "description": "A cozy hostel in the heart of Thamel, perfect for backpackers and adventure seekers.",
+    "amenities": [
+      { "id": "wifi", "label": "Free WiFi", "checked": true },
+      { "id": "laundry", "label": "Laundry Service", "checked": true },
+      { "id": "kitchen", "label": "Common Kitchen", "checked": true },
+      { "id": "rooftop", "label": "Rooftop Access", "checked": false },
+      { "id": "lockers", "label": "Lockers", "checked": true },
+      { "id": "ac", "label": "Air Conditioning", "checked": false },
+      { "id": "parking", "label": "Parking", "checked": true }
+    ],
+    "establishedDate": "2018-03-15",
+    "licenseNumber": "KTM-HST-2018-001",
+    "totalRooms": 25,
+    "totalBeds": 80,
+    "rating": 4.8,
+    "status": "active",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-15T10:30:00Z"
+  },
+  {
+    "id": "hostel_002",
+    "hostelName": "Mountain View Lodge",
+    "ownerName": "Sita Gurung",
+    "email": "sita@mountainview.com",
+    "phone": "+977-9876543210",
+    "address": "Lakeside Road, Ward No. 6",
+    "province": "Gandaki",
+    "district": "Kaski",
+    "description": "Peaceful lodge with stunning mountain views, located near Phewa Lake.",
+    "amenities": [
+      { "id": "wifi", "label": "Free WiFi", "checked": true },
+      { "id": "laundry", "label": "Laundry Service", "checked": true },
+      { "id": "kitchen", "label": "Common Kitchen", "checked": false },
+      { "id": "rooftop", "label": "Rooftop Access", "checked": true },
+      { "id": "lockers", "label": "Lockers", "checked": true },
+      { "id": "ac", "label": "Air Conditioning", "checked": true },
+      { "id": "parking", "label": "Parking", "checked": false }
+    ],
+    "establishedDate": "2019-06-20",
+    "licenseNumber": "PKR-HST-2019-002",
+    "totalRooms": 18,
+    "totalBeds": 45,
+    "rating": 4.6,
+    "status": "active",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-14T14:20:00Z"
+  }
+]

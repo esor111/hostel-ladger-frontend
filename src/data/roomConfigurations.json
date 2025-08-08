@@ -1,0 +1,80 @@
+[
+  {
+    "id": "room_001",
+    "name": "A-101",
+    "type": "Dormitory",
+    "bedCount": 4,
+    "gender": "Mixed",
+    "baseRate": 12000,
+    "amenities": ["Wi-Fi", "Lockers", "Reading Light", "Power Outlet"],
+    "floor": 1,
+    "wing": "A",
+    "dimensions": {
+      "length": 12,
+      "width": 10,
+      "height": 3
+    },
+    "occupancy": {
+      "current": 3,
+      "maximum": 4
+    },
+    "status": "active",
+    "maintenanceStatus": "good",
+    "lastCleaned": "2024-01-15T08:00:00Z",
+    "nextMaintenance": "2024-02-01T10:00:00Z",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-15T10:30:00Z"
+  },
+  {
+    "id": "room_002",
+    "name": "B-205",
+    "type": "Private",
+    "bedCount": 1,
+    "gender": "Female",
+    "baseRate": 18000,
+    "amenities": ["Wi-Fi", "Private Bathroom", "AC", "TV", "Personal Locker"],
+    "floor": 2,
+    "wing": "B",
+    "dimensions": {
+      "length": 8,
+      "width": 6,
+      "height": 3
+    },
+    "occupancy": {
+      "current": 1,
+      "maximum": 1
+    },
+    "status": "active",
+    "maintenanceStatus": "excellent",
+    "lastCleaned": "2024-01-15T09:00:00Z",
+    "nextMaintenance": "2024-02-15T10:00:00Z",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-14T14:20:00Z"
+  },
+  {
+    "id": "room_003",
+    "name": "C-301",
+    "type": "Capsule",
+    "bedCount": 8,
+    "gender": "Male",
+    "baseRate": 8000,
+    "amenities": ["Wi-Fi", "Reading Light", "Power Outlet", "Personal Locker"],
+    "floor": 3,
+    "wing": "C",
+    "dimensions": {
+      "length": 15,
+      "width": 12,
+      "height": 3
+    },
+    "occupancy": {
+      "current": 6,
+      "maximum": 8
+    },
+    "status": "active",
+    "maintenanceStatus": "good",
+    "lastCleaned": "2024-01-14T20:00:00Z",
+    "nextMaintenance": "2024-01-25T10:00:00Z",
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-10T09:15:00Z"
+  }
+]

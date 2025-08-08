@@ -1,0 +1,84 @@
+[
+  {
+    "id": "dimensions_001",
+    "roomId": "room_001",
+    "roomName": "A-101",
+    "length": 12,
+    "width": 10,
+    "height": 3,
+    "unit": "meters",
+    "area": 120,
+    "volume": 360,
+    "theme": {
+      "name": "Modern",
+      "wallColor": "#F8F9FA",
+      "floorColor": "#E9ECEF"
+    },
+    "elements": [
+      {
+        "id": "bed_001",
+        "type": "single-bed",
+        "x": 1,
+        "y": 1,
+        "width": 2,
+        "height": 1,
+        "rotation": 0,
+        "zIndex": 1,
+        "properties": {
+          "bedId": "Bed A",
+          "status": "occupied"
+        }
+      },
+      {
+        "id": "bed_002",
+        "type": "single-bed",
+        "x": 1,
+        "y": 3,
+        "width": 2,
+        "height": 1,
+        "rotation": 0,
+        "zIndex": 1,
+        "properties": {
+          "bedId": "Bed B",
+          "status": "occupied"
+        }
+      }
+    ],
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-15T10:30:00Z"
+  },
+  {
+    "id": "dimensions_002",
+    "roomId": "room_002",
+    "roomName": "B-205",
+    "length": 8,
+    "width": 6,
+    "height": 3,
+    "unit": "meters",
+    "area": 48,
+    "volume": 144,
+    "theme": {
+      "name": "Cozy",
+      "wallColor": "#FFF8E1",
+      "floorColor": "#F5F5DC"
+    },
+    "elements": [
+      {
+        "id": "bed_003",
+        "type": "single-bed",
+        "x": 2,
+        "y": 2,
+        "width": 2,
+        "height": 1,
+        "rotation": 0,
+        "zIndex": 1,
+        "properties": {
+          "bedId": "Private Bed",
+          "status": "occupied"
+        }
+      }
+    ],
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-14T14:20:00Z"
+  }
+]
