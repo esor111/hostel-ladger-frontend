@@ -1,21 +1,47 @@
 // Maintenance Service - Handle room and facility maintenance
-import maintenanceData from '../data/maintenance.json' with { type: 'json' };
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
-let maintenanceRequests = [...maintenanceData];
+let maintenanceRequests = [];
 
 export const maintenanceService = {
   // READ Operations
-  async getAllMaintenanceRequests() {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve([...maintenanceRequests]), 100);
-    });
+  async getAllMaintenanceRequests(filters = {}) {
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters.status) queryParams.append('status', filters.status);
+      if (filters.priority) queryParams.append('priority', filters.priority);
+      if (filters.type) queryParams.append('type', filters.type);
+      if (filters.roomId) queryParams.append('roomId', filters.roomId);
+      
+      const response = await fetch(`${API_BASE_URL}/maintenance?${queryParams}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        maintenanceRequests = result.data;
+        return result.data;
+      } else {
+        throw new Error(result.message || 'Failed to fetch maintenance requests');
+      }
+    } catch (error) {
+      console.error('Error fetching maintenance requests:', error);
+      throw error;
+    }
   },
 
   async getMaintenanceRequestById(id) {
-    return new Promise((resolve) => {
-      const request = maintenanceRequests.find(r => r.id === id);
-      setTimeout(() => resolve(request), 100);
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/maintenance/${id}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        return result.data;
+      } else {
+        throw new Error(result.message || 'Failed to fetch maintenance request');
+      }
+    } catch (error) {
+      console.error('Error fetching maintenance request:', error);
+      throw error;
+    }
   },
 
   async getMaintenanceRequestsByRoom(roomId) {
@@ -73,25 +99,27 @@ export const maintenanceService = {
 
   // CREATE Operations
   async createMaintenanceRequest(requestData) {
-    return new Promise((resolve) => {
-      const newRequest = {
-        id: `MNT${String(maintenanceRequests.length + 1).padStart(3, '0')}`,
-        ...requestData,
-        status: 'pending',
-        reportedAt: new Date().toISOString(),
-        scheduledAt: null,
-        completedAt: null,
-        cost: 0,
-        notes: requestData.notes || '',
-        images: requestData.images || []
-      };
+    try {
+      const response = await fetch(`${API_BASE_URL}/maintenance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      });
       
-      maintenanceRequests.push(newRequest);
+      const result = await response.json();
       
-      console.log(`🔧 Maintenance request created: ${newRequest.title}`);
-      
-      setTimeout(() => resolve(newRequest), 100);
-    });
+      if (result.success) {
+        console.log(`🔧 Maintenance request created: ${result.data.title}`);
+        return result.data;
+      } else {
+        throw new Error(result.message || 'Failed to create maintenance request');
+      }
+    } catch (error) {
+      console.error('Error creating maintenance request:', error);
+      throw error;
+    }
   },
 
   async bulkCreateMaintenanceRequests(requestsArray) {
@@ -118,37 +146,49 @@ export const maintenanceService = {
 
   // UPDATE Operations
   async updateMaintenanceRequest(id, updateData) {
-    return new Promise((resolve, reject) => {
-      const index = maintenanceRequests.findIndex(r => r.id === id);
-      if (index === -1) {
-        setTimeout(() => reject(new Error('Maintenance request not found')), 100);
-        return;
-      }
-
-      maintenanceRequests[index] = { ...maintenanceRequests[index], ...updateData };
+    try {
+      const response = await fetch(`${API_BASE_URL}/maintenance/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      });
       
-      // Auto-set completion date if status is completed
-      if (updateData.status === 'completed' && !updateData.completedAt) {
-        maintenanceRequests[index].completedAt = new Date().toISOString();
-      }
+      const result = await response.json();
       
-      setTimeout(() => resolve(maintenanceRequests[index]), 100);
-    });
+      if (result.success) {
+        return result.data;
+      } else {
+        throw new Error(result.message || 'Failed to update maintenance request');
+      }
+    } catch (error) {
+      console.error('Error updating maintenance request:', error);
+      throw error;
+    }
   },
 
-  async assignMaintenanceRequest(id, assignedTo) {
-    return new Promise((resolve, reject) => {
-      const index = maintenanceRequests.findIndex(r => r.id === id);
-      if (index === -1) {
-        setTimeout(() => reject(new Error('Maintenance request not found')), 100);
-        return;
-      }
-
-      maintenanceRequests[index].assignedTo = assignedTo;
-      maintenanceRequests[index].status = 'in-progress';
+  async assignMaintenanceRequest(id, assignedTo, scheduledAt) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/maintenance/${id}/assign`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ assignedTo, scheduledAt }),
+      });
       
-      setTimeout(() => resolve(maintenanceRequests[index]), 100);
-    });
+      const result = await response.json();
+      
+      if (result.success) {
+        return result.data;
+      } else {
+        throw new Error(result.message || 'Failed to assign maintenance request');
+      }
+    } catch (error) {
+      console.error('Error assigning maintenance request:', error);
+      throw error;
+    }
   },
 
   async scheduleMaintenanceRequest(id, scheduledAt) {
@@ -166,25 +206,28 @@ export const maintenanceService = {
     });
   },
 
-  async completeMaintenanceRequest(id, completionData) {
-    return new Promise((resolve, reject) => {
-      const index = maintenanceRequests.findIndex(r => r.id === id);
-      if (index === -1) {
-        setTimeout(() => reject(new Error('Maintenance request not found')), 100);
-        return;
+  async completeMaintenanceRequest(id, cost, notes) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/maintenance/${id}/complete`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cost, notes }),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log(`✅ Maintenance request completed: ${result.data.title}`);
+        return result.data;
+      } else {
+        throw new Error(result.message || 'Failed to complete maintenance request');
       }
-
-      maintenanceRequests[index] = {
-        ...maintenanceRequests[index],
-        ...completionData,
-        status: 'completed',
-        completedAt: new Date().toISOString()
-      };
-      
-      console.log(`✅ Maintenance request completed: ${maintenanceRequests[index].title}`);
-      
-      setTimeout(() => resolve(maintenanceRequests[index]), 100);
-    });
+    } catch (error) {
+      console.error('Error completing maintenance request:', error);
+      throw error;
+    }
   },
 
   async updateMaintenanceCost(id, cost, notes) {
@@ -286,58 +329,19 @@ export const maintenanceService = {
 
   // STATISTICS Operations
   async getMaintenanceStats() {
-    return new Promise((resolve) => {
-      const stats = {
-        total: maintenanceRequests.length,
-        pending: maintenanceRequests.filter(r => r.status === 'pending').length,
-        inProgress: maintenanceRequests.filter(r => r.status === 'in-progress').length,
-        completed: maintenanceRequests.filter(r => r.status === 'completed').length,
-        cancelled: maintenanceRequests.filter(r => r.status === 'cancelled').length,
-        urgent: maintenanceRequests.filter(r => r.priority === 'urgent').length,
-        high: maintenanceRequests.filter(r => r.priority === 'high').length,
-        totalCost: maintenanceRequests.reduce((sum, r) => sum + (r.cost || 0), 0),
-        averageCost: 0,
-        averageCompletionTime: 0,
-        byType: {},
-        byPriority: {},
-        byStatus: {}
-      };
+    try {
+      const response = await fetch(`${API_BASE_URL}/maintenance/stats`);
+      const result = await response.json();
       
-      // Calculate averages
-      const completedRequests = maintenanceRequests.filter(r => r.status === 'completed');
-      if (completedRequests.length > 0) {
-        stats.averageCost = stats.totalCost / completedRequests.length;
-        
-        // Calculate average completion time in hours
-        const totalCompletionTime = completedRequests.reduce((sum, r) => {
-          if (r.reportedAt && r.completedAt) {
-            const reported = new Date(r.reportedAt);
-            const completed = new Date(r.completedAt);
-            return sum + (completed - reported) / (1000 * 60 * 60); // Convert to hours
-          }
-          return sum;
-        }, 0);
-        
-        stats.averageCompletionTime = totalCompletionTime / completedRequests.length;
+      if (result.success) {
+        return result.data;
+      } else {
+        throw new Error(result.message || 'Failed to fetch maintenance statistics');
       }
-      
-      // Count by type
-      maintenanceRequests.forEach(request => {
-        stats.byType[request.type] = (stats.byType[request.type] || 0) + 1;
-      });
-      
-      // Count by priority
-      maintenanceRequests.forEach(request => {
-        stats.byPriority[request.priority] = (stats.byPriority[request.priority] || 0) + 1;
-      });
-      
-      // Count by status
-      maintenanceRequests.forEach(request => {
-        stats.byStatus[request.status] = (stats.byStatus[request.status] || 0) + 1;
-      });
-      
-      setTimeout(() => resolve(stats), 100);
-    });
+    } catch (error) {
+      console.error('Error fetching maintenance statistics:', error);
+      throw error;
+    }
   },
 
   async getMaintenanceSummary() {

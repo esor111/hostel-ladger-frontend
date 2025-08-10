@@ -12,6 +12,9 @@ import { LedgerModule } from './ledger/ledger.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { DiscountsModule } from './discounts/discounts.module';
 import { ReportsModule } from './reports/reports.module';
+import { HostelModule } from './hostel/hostel.module';
+import { MaintenanceModule } from './maintenance/maintenance.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { SeedModule } from './database/seeds/seed.module';
 
 @Module({
@@ -34,6 +37,9 @@ import { SeedModule } from './database/seeds/seed.module';
     BookingsModule,
     DiscountsModule,
     ReportsModule,
+    HostelModule,
+    MaintenanceModule,
+    NotificationsModule,
     SeedModule,
   ],
   controllers: [AppController],

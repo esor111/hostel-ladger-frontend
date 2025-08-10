@@ -30,6 +30,10 @@ import { BookingRequest } from '../bookings/entities/booking-request.entity';
 
 import { Report } from '../reports/entities/report.entity';
 
+import { HostelProfile } from '../hostel/entities/hostel-profile.entity';
+import { MaintenanceRequest } from '../maintenance/entities/maintenance-request.entity';
+import { Notification } from '../notifications/entities/notification.entity';
+
 // Load environment variables
 config();
 
@@ -72,6 +76,11 @@ export const dataSourceOptions: DataSourceOptions = {
     
     // Report entities
     Report,
+    
+    // Hostel entities
+    HostelProfile,
+    MaintenanceRequest,
+    Notification,
   ],
   migrations: ['src/database/migrations/*{.ts,.js}'],
   synchronize: false, // Always false in production

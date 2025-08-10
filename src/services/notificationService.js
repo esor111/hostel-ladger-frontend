@@ -1,8 +1,8 @@
 // Notification Service for Kaha App Integration
 // Handles all student notifications through the Kaha mobile app
-import notificationsData from '../data/notifications.json' with { type: 'json' };
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
-let notifications = [...notificationsData];
+let notifications = [];
 
 export const notificationService = {
   // Send notification to Kaha App
@@ -178,17 +178,44 @@ export const notificationService = {
   },
 
   // CRUD Operations for notification history
-  async getAllNotifications() {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve([...notifications]), 100);
-    });
+  async getAllNotifications(filters = {}) {
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters.recipientId) queryParams.append('recipientId', filters.recipientId);
+      if (filters.recipientType) queryParams.append('recipientType', filters.recipientType);
+      if (filters.isRead !== undefined) queryParams.append('isRead', filters.isRead);
+      if (filters.category) queryParams.append('category', filters.category);
+      if (filters.priority) queryParams.append('priority', filters.priority);
+      
+      const response = await fetch(`${API_BASE_URL}/notifications?${queryParams}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        notifications = result.data;
+        return result.data;
+      } else {
+        throw new Error(result.message || 'Failed to fetch notifications');
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      throw error;
+    }
   },
 
   async getNotificationById(id) {
-    return new Promise((resolve) => {
-      const notification = notifications.find(n => n.id === id);
-      setTimeout(() => resolve(notification), 100);
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/notifications/${id}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        return result.data;
+      } else {
+        throw new Error(result.message || 'Failed to fetch notification');
+      }
+    } catch (error) {
+      console.error('Error fetching notification:', error);
+      throw error;
+    }
   },
 
   async getNotificationsByRecipient(recipientId, recipientType = 'student') {
@@ -201,29 +228,38 @@ export const notificationService = {
   },
 
   async getUnreadNotifications(recipientId, recipientType = 'student') {
-    return new Promise((resolve) => {
-      const unreadNotifications = notifications.filter(n => 
-        n.recipientId === recipientId && 
-        n.recipientType === recipientType && 
-        !n.isRead
-      );
-      setTimeout(() => resolve(unreadNotifications), 100);
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/notifications/unread?recipientId=${recipientId}&recipientType=${recipientType}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        return result.data;
+      } else {
+        throw new Error(result.message || 'Failed to fetch unread notifications');
+      }
+    } catch (error) {
+      console.error('Error fetching unread notifications:', error);
+      throw error;
+    }
   },
 
   async markAsRead(notificationId) {
-    return new Promise((resolve, reject) => {
-      const index = notifications.findIndex(n => n.id === notificationId);
-      if (index === -1) {
-        setTimeout(() => reject(new Error('Notification not found')), 100);
-        return;
-      }
-
-      notifications[index].isRead = true;
-      notifications[index].readAt = new Date().toISOString();
+    try {
+      const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}/read`, {
+        method: 'PUT',
+      });
       
-      setTimeout(() => resolve(notifications[index]), 100);
-    });
+      const result = await response.json();
+      
+      if (result.success) {
+        return result.data;
+      } else {
+        throw new Error(result.message || 'Failed to mark notification as read');
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      throw error;
+    }
   },
 
   async markAllAsRead(recipientId, recipientType = 'student') {
@@ -245,33 +281,42 @@ export const notificationService = {
   },
 
   async sendNotification({ recipientId, recipientType = 'student', title, message, type = 'info', category = 'general', priority = 'medium', actionUrl = null }) {
-    return new Promise((resolve) => {
-      const notification = {
-        id: `NOT${String(notifications.length + 1).padStart(3, '0')}`,
-        recipientId,
-        recipientType,
-        title,
-        message,
-        type,
-        category,
-        isRead: false,
-        sentAt: new Date().toISOString(),
-        readAt: null,
-        priority,
-        actionUrl
-      };
+    try {
+      const response = await fetch(`${API_BASE_URL}/notifications`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          recipientId,
+          recipientType,
+          title,
+          message,
+          type,
+          category,
+          priority,
+          actionUrl
+        }),
+      });
       
-      notifications.push(notification);
+      const result = await response.json();
       
-      // Also send via Kaha App
-      this.sendKahaAppNotification(recipientId, message, type, priority);
-      
-      setTimeout(() => resolve({
-        success: true,
-        notificationId: notification.id,
-        deliveredAt: new Date().toISOString()
-      }), 100);
-    });
+      if (result.success) {
+        // Also send via Kaha App
+        this.sendKahaAppNotification(recipientId, message, type, priority);
+        
+        return {
+          success: true,
+          notificationId: result.data.id,
+          deliveredAt: result.data.sentAt
+        };
+      } else {
+        throw new Error(result.message || 'Failed to send notification');
+      }
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      throw error;
+    }
   },
 
   // Get notification history (for admin dashboard)
@@ -293,39 +338,20 @@ export const notificationService = {
   },
 
   // Get notification statistics
-  async getNotificationStats() {
-    return new Promise((resolve) => {
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  async getNotificationStats(recipientId = null) {
+    try {
+      const queryParams = recipientId ? `?recipientId=${recipientId}` : '';
+      const response = await fetch(`${API_BASE_URL}/notifications/stats${queryParams}`);
+      const result = await response.json();
       
-      const stats = {
-        totalSent: notifications.length,
-        delivered: notifications.length, // Assume all are delivered for demo
-        failed: 0,
-        deliveryRate: 96.8,
-        todaySent: notifications.filter(n => new Date(n.sentAt) >= todayStart).length,
-        unreadCount: notifications.filter(n => !n.isRead).length,
-        byType: {},
-        byCategory: {},
-        byPriority: {}
-      };
-      
-      // Count by type
-      notifications.forEach(notification => {
-        stats.byType[notification.type] = (stats.byType[notification.type] || 0) + 1;
-      });
-      
-      // Count by category
-      notifications.forEach(notification => {
-        stats.byCategory[notification.category] = (stats.byCategory[notification.category] || 0) + 1;
-      });
-      
-      // Count by priority
-      notifications.forEach(notification => {
-        stats.byPriority[notification.priority] = (stats.byPriority[notification.priority] || 0) + 1;
-      });
-
-      setTimeout(() => resolve(stats), 100);
-    });
+      if (result.success) {
+        return result.data;
+      } else {
+        throw new Error(result.message || 'Failed to fetch notification statistics');
+      }
+    } catch (error) {
+      console.error('Error fetching notification statistics:', error);
+      throw error;
+    }
   }
 };
