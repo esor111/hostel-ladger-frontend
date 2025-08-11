@@ -1,132 +1,160 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { DiscountsService } from './discounts.service';
-import { CreateDiscountDto, ApplyDiscountDto } from './dto/create-discount.dto';
-import { UpdateDiscountDto } from './dto/update-discount.dto';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  HttpStatus,
+} from "@nestjs/common";
+import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { DiscountsService } from "./discounts.service";
+import { CreateDiscountDto, ApplyDiscountDto } from "./dto/create-discount.dto";
+import { UpdateDiscountDto } from "./dto/update-discount.dto";
 
-@ApiTags('discounts')
-@Controller('api/v1/discounts')
+@ApiTags("discounts")
+@Controller("discounts")
 export class DiscountsController {
   constructor(private readonly discountsService: DiscountsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all discounts' })
-  @ApiResponse({ status: 200, description: 'List of discounts retrieved successfully' })
+  @ApiOperation({ summary: "Get all discounts" })
+  @ApiResponse({
+    status: 200,
+    description: "List of discounts retrieved successfully",
+  })
   async getDiscounts(@Query() query: any) {
     const result = await this.discountsService.findAll(query);
-    
+
     // Return EXACT same format as current Express API
     return {
       status: HttpStatus.OK,
-      result: result
+      result: result,
     };
   }
 
-  @Get('stats')
-  @ApiOperation({ summary: 'Get discount statistics' })
-  @ApiResponse({ status: 200, description: 'Discount statistics retrieved successfully' })
+  @Get("stats")
+  @ApiOperation({ summary: "Get discount statistics" })
+  @ApiResponse({
+    status: 200,
+    description: "Discount statistics retrieved successfully",
+  })
   async getDiscountStats() {
     const stats = await this.discountsService.getStats();
-    
+
     // Return EXACT same format as current Express API
     return {
       status: HttpStatus.OK,
-      stats: stats
+      stats: stats,
     };
   }
 
-  @Get('types')
-  @ApiOperation({ summary: 'Get discount types' })
-  @ApiResponse({ status: 200, description: 'Discount types retrieved successfully' })
+  @Get("types")
+  @ApiOperation({ summary: "Get discount types" })
+  @ApiResponse({
+    status: 200,
+    description: "Discount types retrieved successfully",
+  })
   async getDiscountTypes() {
     const types = await this.discountsService.getDiscountTypes();
-    
+
     // Return EXACT same format as current Express API
     return {
       status: HttpStatus.OK,
-      data: types
+      data: types,
     };
   }
 
-  @Get('student/:studentId')
-  @ApiOperation({ summary: 'Get discounts by student ID' })
-  @ApiResponse({ status: 200, description: 'Student discounts retrieved successfully' })
-  async getDiscountsByStudentId(@Param('studentId') studentId: string) {
+  @Get("student/:studentId")
+  @ApiOperation({ summary: "Get discounts by student ID" })
+  @ApiResponse({
+    status: 200,
+    description: "Student discounts retrieved successfully",
+  })
+  async getDiscountsByStudentId(@Param("studentId") studentId: string) {
     const discounts = await this.discountsService.findByStudentId(studentId);
-    
+
     // Return EXACT same format as current Express API
     return {
       status: HttpStatus.OK,
-      data: discounts
+      data: discounts,
     };
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get discount by ID' })
-  @ApiResponse({ status: 200, description: 'Discount retrieved successfully' })
-  @ApiResponse({ status: 404, description: 'Discount not found' })
-  async getDiscountById(@Param('id') id: string) {
+  @Get(":id")
+  @ApiOperation({ summary: "Get discount by ID" })
+  @ApiResponse({ status: 200, description: "Discount retrieved successfully" })
+  @ApiResponse({ status: 404, description: "Discount not found" })
+  async getDiscountById(@Param("id") id: string) {
     const discount = await this.discountsService.findOne(id);
-    
+
     // Return EXACT same format as current Express API
     return {
       status: HttpStatus.OK,
-      data: discount
+      data: discount,
     };
   }
 
   @Post()
-  @ApiOperation({ summary: 'Create new discount' })
-  @ApiResponse({ status: 201, description: 'Discount created successfully' })
+  @ApiOperation({ summary: "Create new discount" })
+  @ApiResponse({ status: 201, description: "Discount created successfully" })
   async createDiscount(@Body() createDiscountDto: CreateDiscountDto) {
     const discount = await this.discountsService.create(createDiscountDto);
-    
+
     // Return EXACT same format as current Express API
     return {
       status: HttpStatus.CREATED,
-      data: discount
+      data: discount,
     };
   }
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Update discount' })
-  @ApiResponse({ status: 200, description: 'Discount updated successfully' })
-  async updateDiscount(@Param('id') id: string, @Body() updateDiscountDto: UpdateDiscountDto) {
+  @Put(":id")
+  @ApiOperation({ summary: "Update discount" })
+  @ApiResponse({ status: 200, description: "Discount updated successfully" })
+  async updateDiscount(
+    @Param("id") id: string,
+    @Body() updateDiscountDto: UpdateDiscountDto
+  ) {
     const discount = await this.discountsService.update(id, updateDiscountDto);
-    
+
     // Return EXACT same format as current Express API
     return {
       status: HttpStatus.OK,
-      data: discount
+      data: discount,
     };
   }
 
-  @Post('apply')
-  @ApiOperation({ summary: 'Apply discount to student' })
-  @ApiResponse({ status: 200, description: 'Discount applied successfully' })
+  @Post("apply")
+  @ApiOperation({ summary: "Apply discount to student" })
+  @ApiResponse({ status: 200, description: "Discount applied successfully" })
   async applyDiscount(@Body() applyDiscountDto: ApplyDiscountDto) {
     const result = await this.discountsService.applyDiscount(
       applyDiscountDto.studentId,
       applyDiscountDto
     );
-    
+
     // Return EXACT same format as current Express API
     return {
       status: HttpStatus.OK,
-      data: result
+      data: result,
     };
   }
 
-  @Put(':id/expire')
-  @ApiOperation({ summary: 'Expire discount' })
-  @ApiResponse({ status: 200, description: 'Discount expired successfully' })
-  async expireDiscount(@Param('id') id: string, @Body() expireDto: any) {
-    const result = await this.discountsService.expireDiscount(id, expireDto.expiredBy);
-    
+  @Put(":id/expire")
+  @ApiOperation({ summary: "Expire discount" })
+  @ApiResponse({ status: 200, description: "Discount expired successfully" })
+  async expireDiscount(@Param("id") id: string, @Body() expireDto: any) {
+    const result = await this.discountsService.expireDiscount(
+      id,
+      expireDto.expiredBy
+    );
+
     // Return EXACT same format as current Express API
     return {
       status: HttpStatus.OK,
-      data: result
+      data: result,
     };
   }
 }

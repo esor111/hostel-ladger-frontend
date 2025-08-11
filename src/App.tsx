@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "@/contexts/AppContext";
+import EnvironmentSwitcher from "@/components/EnvironmentSwitcher";
 
 // Lazy load components for better initial load performance
 const Landing = lazy(() => import("./pages/Landing"));
@@ -75,6 +76,7 @@ const App = () => {
         <AppProvider>
           <Toaster />
           <Sonner />
+          <EnvironmentSwitcher />
           <BrowserRouter>
             <Suspense fallback={<LoadingFallback />}>
               <Routes>

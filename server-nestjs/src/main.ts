@@ -8,7 +8,7 @@ async function bootstrap() {
 
   // Enable CORS for frontend development
   app.enableCors({
-    origin: ['http://localhost:8080', 'http://localhost:3000', 'http://localhost:5173'],
+    origin: true, // Dynamically allow any origin
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     credentials: true,
@@ -29,9 +29,10 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("hostel/api/v1/docs", app, document);
 
-  await app.listen(process.env.APP_PORT, () => {
-    console.log(`Hostel Server: http://localhost:${process.env.APP_PORT}`);
-    console.log(`Docs: http://localhost:${process.env.APP_PORT}/hostel/api/v1/docs`);
+  const port = Number(process.env.APP_PORT) || 3001;
+  await app.listen(port, () => {
+    console.log(`Hostel Server: http://localhost:${port}`);
+    console.log(`Docs: http://localhost:${port}/hostel/api/v1/docs`);
   });
 }
 

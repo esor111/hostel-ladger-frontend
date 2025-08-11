@@ -1,6 +1,8 @@
 // Notification Service for Kaha App Integration
 // Handles all student notifications through the Kaha mobile app
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/hostel/api/v1';
+import { getEnvironmentConfig } from '../config/environment.ts';
+
+const API_BASE_URL = getEnvironmentConfig().apiBaseUrl;
 
 let notifications = [];
 

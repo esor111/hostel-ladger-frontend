@@ -3,7 +3,9 @@ import { ledgerService } from "./ledgerService.js";
 import { billingService } from "./billingService.js";
 import { notificationService } from "./notificationService.js";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/hostel/api/v1';
+import { getEnvironmentConfig } from "../config/environment.ts";
+
+const API_BASE_URL = getEnvironmentConfig().apiBaseUrl;
 
 // Helper function to handle API requests
 async function apiRequest(endpoint, options = {}) {
@@ -35,27 +37,31 @@ export const bookingService = {
   // Get all booking requests with filtering and pagination
   async getBookingRequests(filters = {}) {
     try {
-      console.log('📝 Fetching booking requests from API...');
+      console.log("📝 Fetching booking requests from API...");
       const queryParams = new URLSearchParams();
-      
+
       // Add filters as query parameters
       Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
+        if (value !== undefined && value !== null && value !== "") {
           queryParams.append(key, value);
         }
       });
-      
-      const endpoint = `/booking-requests${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+      const endpoint = `/booking-requests${
+        queryParams.toString() ? `?${queryParams.toString()}` : ""
+      }`;
       const response = await fetch(`${API_BASE_URL}${endpoint}`);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(
+          errorData.message || `HTTP ${response.status}: ${response.statusText}`
+        );
       }
-      
+
       const data = await response.json();
-      console.log('✅ Booking requests API response:', data);
-      
+      console.log("✅ Booking requests API response:", data);
+
       // Handle different response formats - ensure we return an array
       if (data.data && data.data.items) {
         return data.data.items; // Paginated response
@@ -67,7 +73,7 @@ export const bookingService = {
         return []; // Fallback to empty array
       }
     } catch (error) {
-      console.error('❌ Error fetching booking requests:', error);
+      console.error("❌ Error fetching booking requests:", error);
       throw error;
     }
   },
@@ -246,7 +252,7 @@ export const bookingService = {
       console.log(`🔍 Searching booking requests: ${searchTerm}`);
       return await this.getBookingRequests({ search: searchTerm, ...filters });
     } catch (error) {
-      console.error('❌ Error searching booking requests:', error);
+      console.error("❌ Error searching booking requests:", error);
       throw error;
     }
   },
@@ -257,7 +263,7 @@ export const bookingService = {
       console.log(`📄 Fetching booking requests page ${page}`);
       return await this.getBookingRequests({ page, limit, ...filters });
     } catch (error) {
-      console.error('❌ Error fetching paginated booking requests:', error);
+      console.error("❌ Error fetching paginated booking requests:", error);
       throw error;
     }
   },

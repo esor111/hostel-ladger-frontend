@@ -5,13 +5,13 @@ import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 
 @ApiTags('invoices')
-@Controller('api/v1/invoices')
+@Controller('invoices')
 export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all invoices' })
-  @ApiResponse({ status: 200, description: 'List of invoices retrieved successfully' })
+  @ApiResponse({ status: 200, description: 'List of invoices retrievqed successfully' })
   async getAllInvoices(@Query() query: any) {
     const result = await this.invoicesService.findAll(query);
     

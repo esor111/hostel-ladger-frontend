@@ -1,5 +1,7 @@
 // Maintenance Service - Handle room and facility maintenance
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+import { getEnvironmentConfig } from '../config/environment.ts';
+
+const API_BASE_URL = getEnvironmentConfig().apiBaseUrl;
 
 let maintenanceRequests = [];
 

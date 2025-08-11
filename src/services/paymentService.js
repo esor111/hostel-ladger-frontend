@@ -2,7 +2,9 @@ import { studentService } from "./studentService.js";
 import { ledgerService } from "./ledgerService.js";
 import { notificationService } from "./notificationService.js";
 
-const API_BASE_URL = "https://dev.kaha.com.np/hostel/api/v1";
+import { getEnvironmentConfig } from '../config/environment.ts';
+
+const API_BASE_URL = getEnvironmentConfig().apiBaseUrl;
 
 // Helper function to handle API requests
 async function apiRequest(endpoint, options = {}) {

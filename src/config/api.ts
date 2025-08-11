@@ -1,10 +1,24 @@
+import { getEnvironmentConfig, debugLog } from './environment';
+
+// Get environment configuration
+const envConfig = getEnvironmentConfig();
+
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/hostel/api/v1',
+  BASE_URL: envConfig.apiBaseUrl,
   TIMEOUT: 30000,
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000,
+  ENVIRONMENT: envConfig.environment,
+  DEBUG_MODE: envConfig.debugMode,
 };
+
+// Log current API configuration for debugging
+debugLog('API Configuration loaded', {
+  baseUrl: API_CONFIG.BASE_URL,
+  environment: API_CONFIG.ENVIRONMENT,
+  debugMode: API_CONFIG.DEBUG_MODE,
+});
 
 // API Endpoints
 export const API_ENDPOINTS = {
@@ -39,7 +53,7 @@ export const API_ENDPOINTS = {
     BASE: '/rooms',
     AVAILABLE: '/rooms/available',
   },
-  
+    
   // Admin Charges
   ADMIN_CHARGES: {
     BASE: '/admin/charges',
