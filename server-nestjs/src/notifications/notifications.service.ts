@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Notification, RecipientType } from './entities/notification.entity';
+import { Notification, RecipientType, NotificationType, NotificationCategory, NotificationPriority } from './entities/notification.entity';
 import { CreateNotificationDto, UpdateNotificationDto } from './dto/notification.dto';
 
 @Injectable()
@@ -60,7 +60,7 @@ export class NotificationsService {
   async getUnreadNotifications(recipientId: string, recipientType: string): Promise<Notification[]> {
     return await this.notificationRepository.find({
       where: [
-        { recipientId, recipientType, isRead: false },
+        { recipientId, recipientType: recipientType as RecipientType, isRead: false },
         { recipientType: RecipientType.ALL, isRead: false }
       ],
       order: { sentAt: 'DESC' }
@@ -93,8 +93,13 @@ export class NotificationsService {
     actionUrl?: string;
   }): Promise<Notification[]> {
     const notification = this.notificationRepository.create({
-      ...broadcastData,
+      title: broadcastData.title,
+      message: broadcastData.message,
+      type: broadcastData.type as NotificationType,
+      category: broadcastData.category as NotificationCategory,
+      priority: broadcastData.priority as NotificationPriority,
       recipientType: broadcastData.recipientType as RecipientType,
+      actionUrl: broadcastData.actionUrl,
       sentAt: new Date()
     });
     
@@ -111,7 +116,7 @@ export class NotificationsService {
 
   async markAllAsRead(recipientId: string, recipientType: string): Promise<void> {
     await this.notificationRepository.update(
-      { recipientId, recipientType, isRead: false },
+      { recipientId, recipientType: recipientType as RecipientType, isRead: false },
       { isRead: true, readAt: new Date() }
     );
   }

@@ -86,7 +86,7 @@ export const dataSourceOptions: DataSourceOptions = {
   synchronize: false, // Always false in production
   logging: process.env.NODE_ENV === 'development',
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  migrationsRun: false, // Don't auto-run migrations
+  migrationsRun: true, // Auto-run migrations on startup
   migrationsTableName: 'typeorm_migrations',
 };
 
