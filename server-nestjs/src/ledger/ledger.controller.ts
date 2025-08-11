@@ -4,7 +4,7 @@ import { LedgerService } from './ledger.service';
 import { CreateAdjustmentDto } from './dto/create-ledger-entry.dto';
 
 @ApiTags('ledger')
-@Controller('api/v1/ledgers')
+@Controller('ledgers')
 export class LedgerController {
   constructor(private readonly ledgerService: LedgerService) {}
 

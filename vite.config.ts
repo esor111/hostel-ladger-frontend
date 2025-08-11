@@ -19,6 +19,10 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    // Fix for libraries that expect process.env to be defined
+    'process.env': {},
+  },
   test: {
     globals: true,
     environment: 'jsdom',

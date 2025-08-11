@@ -3,7 +3,7 @@ import { ledgerService } from "./ledgerService.js";
 import { billingService } from "./billingService.js";
 import { notificationService } from "./notificationService.js";
 
-const API_BASE_URL = "https://dev.kaha.com.np/hostel/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/hostel/api/v1';
 
 // Helper function to handle API requests
 async function apiRequest(endpoint, options = {}) {

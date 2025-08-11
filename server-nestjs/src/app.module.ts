@@ -15,6 +15,7 @@ import { ReportsModule } from './reports/reports.module';
 import { HostelModule } from './hostel/hostel.module';
 import { MaintenanceModule } from './maintenance/maintenance.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 import { SeedModule } from './database/seeds/seed.module';
 
 @Module({
@@ -40,6 +41,7 @@ import { SeedModule } from './database/seeds/seed.module';
     HostelModule,
     MaintenanceModule,
     NotificationsModule,
+    AnalyticsModule,
     SeedModule,
   ],
   controllers: [AppController],

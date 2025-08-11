@@ -415,10 +415,58 @@ export class SeedService {
 
     const students = [
       {
+        name: "Ajay Sharma",
+        phone: "+9779841234567",
+        email: "ajay.sharma@example.com",
+        enrollmentDate: new Date("2024-01-15"),
+        status: StudentStatus.ACTIVE,
+        address: "Kathmandu, Nepal",
+      },
+      {
+        name: "Ishwor Poudel",
+        phone: "+9779841234568",
+        email: "ishwor.poudel@example.com",
+        enrollmentDate: new Date("2024-01-20"),
+        status: StudentStatus.ACTIVE,
+        address: "Pokhara, Nepal",
+      },
+      {
+        name: "Prashun Thapa",
+        phone: "+9779841234569",
+        email: "prashun.thapa@example.com",
+        enrollmentDate: new Date("2024-02-01"),
+        status: StudentStatus.ACTIVE,
+        address: "Lalitpur, Nepal",
+      },
+      {
+        name: "Ayush Karki",
+        phone: "+9779841234570",
+        email: "ayush.karki@example.com",
+        enrollmentDate: new Date("2024-02-10"),
+        status: StudentStatus.ACTIVE,
+        address: "Bhaktapur, Nepal",
+      },
+      {
+        name: "Bhuwan Adhikari",
+        phone: "+9779841234571",
+        email: "bhuwan.adhikari@example.com",
+        enrollmentDate: new Date("2024-02-15"),
+        status: StudentStatus.ACTIVE,
+        address: "Chitwan, Nepal",
+      },
+      {
+        name: "Sabina Shrestha",
+        phone: "+9779841234572",
+        email: "sabina.shrestha@example.com",
+        enrollmentDate: new Date("2024-02-20"),
+        status: StudentStatus.ACTIVE,
+        address: "Biratnagar, Nepal",
+      },
+      {
         name: "John Doe",
         phone: "+1234567890",
         email: "john.doe@example.com",
-        enrollmentDate: new Date("2024-01-15"),
+        enrollmentDate: new Date("2024-03-01"),
         status: StudentStatus.ACTIVE,
         address: "123 Main Street, City",
       },
@@ -426,7 +474,7 @@ export class SeedService {
         name: "Jane Smith",
         phone: "+1234567891",
         email: "jane.smith@example.com",
-        enrollmentDate: new Date("2024-02-01"),
+        enrollmentDate: new Date("2024-03-05"),
         status: StudentStatus.ACTIVE,
         address: "456 Oak Avenue, City",
       },
@@ -434,7 +482,7 @@ export class SeedService {
         name: "Mike Johnson",
         phone: "+1234567892",
         email: "mike.johnson@example.com",
-        enrollmentDate: new Date("2024-02-15"),
+        enrollmentDate: new Date("2024-03-10"),
         status: StudentStatus.ACTIVE,
         address: "789 Pine Road, City",
       },
@@ -461,6 +509,12 @@ export class SeedService {
     // Add contacts
     const contacts = [];
     const guardianData = [
+      { name: "Ram Sharma", phone: "+9779841234500" },
+      { name: "Sita Poudel", phone: "+9779841234501" },
+      { name: "Krishna Thapa", phone: "+9779841234502" },
+      { name: "Gita Karki", phone: "+9779841234503" },
+      { name: "Hari Adhikari", phone: "+9779841234504" },
+      { name: "Maya Shrestha", phone: "+9779841234505" },
       { name: "Robert Doe", phone: "+1234567800" },
       { name: "Mary Smith", phone: "+1234567801" },
       { name: "David Johnson", phone: "+1234567802" },
@@ -491,61 +545,133 @@ export class SeedService {
     await this.studentContactRepository.save(contacts);
 
     // Add academic info
-    const academicInfo = [
+    const academicData = [
       {
-        studentId: "STU001",
+        course: "Computer Science",
+        institution: "Tribhuvan University",
+        academicYear: "2023-2024",
+        semester: "4th",
+        studentIdNumber: "CS2022001",
+      },
+      {
+        course: "Information Technology",
+        institution: "Kathmandu University",
+        academicYear: "2022-2025",
+        semester: "5th",
+        studentIdNumber: "IT2022002",
+      },
+      {
+        course: "Business Administration",
+        institution: "Pokhara University",
+        academicYear: "2021-2024",
+        semester: "6th",
+        studentIdNumber: "BBA2021003",
+      },
+      {
+        course: "Civil Engineering",
+        institution: "Pulchowk Campus",
+        academicYear: "2023-2027",
+        semester: "3rd",
+        studentIdNumber: "CE2023004",
+      },
+      {
+        course: "Electrical Engineering",
+        institution: "IOE Thapathali",
+        academicYear: "2022-2026",
+        semester: "4th",
+        studentIdNumber: "EE2022005",
+      },
+      {
+        course: "Pharmacy",
+        institution: "KU School of Pharmacy",
+        academicYear: "2023-2027",
+        semester: "2nd",
+        studentIdNumber: "PHARM2023006",
+      },
+      {
         course: "Computer Science",
         institution: "Tech University",
         academicYear: "2023-2024",
         semester: "4th",
-        studentIdNumber: "CS2022001",
-        isActive: true,
+        studentIdNumber: "CS2022007",
       },
       {
-        studentId: "STU002",
         course: "Business Administration",
         institution: "Business College",
         academicYear: "2021-2024",
         semester: "6th",
-        studentIdNumber: "BA2021002",
-        isActive: true,
+        studentIdNumber: "BA2021008",
       },
       {
-        studentId: "STU003",
         course: "Mechanical Engineering",
         institution: "Engineering College",
         academicYear: "2023-2027",
         semester: "2nd",
-        studentIdNumber: "ME2023003",
-        isActive: true,
+        studentIdNumber: "ME2023009",
       },
     ];
+
+    const academicInfo = savedStudents.map((student, index) => ({
+      studentId: student.id,
+      ...academicData[index],
+      isActive: true,
+    }));
     await this.studentAcademicRepository.save(academicInfo);
 
     // Add financial info
-    const financialInfo = [
+    const financialData = [
       {
-        studentId: "STU001",
         feeType: FeeType.BASE_MONTHLY,
         amount: 8000,
         effectiveFrom: new Date("2024-07-01"),
-        isActive: true,
       },
       {
-        studentId: "STU002",
+        feeType: FeeType.BASE_MONTHLY,
+        amount: 7500,
+        effectiveFrom: new Date("2024-07-01"),
+      },
+      {
         feeType: FeeType.BASE_MONTHLY,
         amount: 6000,
         effectiveFrom: new Date("2024-07-01"),
-        isActive: true,
       },
       {
-        studentId: "STU003",
+        feeType: FeeType.BASE_MONTHLY,
+        amount: 6500,
+        effectiveFrom: new Date("2024-07-01"),
+      },
+      {
+        feeType: FeeType.BASE_MONTHLY,
+        amount: 7000,
+        effectiveFrom: new Date("2024-07-01"),
+      },
+      {
+        feeType: FeeType.BASE_MONTHLY,
+        amount: 5500,
+        effectiveFrom: new Date("2024-07-01"),
+      },
+      {
+        feeType: FeeType.BASE_MONTHLY,
+        amount: 8000,
+        effectiveFrom: new Date("2024-07-01"),
+      },
+      {
         feeType: FeeType.BASE_MONTHLY,
         amount: 6000,
         effectiveFrom: new Date("2024-07-01"),
-        isActive: true,
+      },
+      {
+        feeType: FeeType.BASE_MONTHLY,
+        amount: 6000,
+        effectiveFrom: new Date("2024-07-01"),
       },
     ];
+
+    const financialInfo = savedStudents.map((student, index) => ({
+      studentId: student.id,
+      ...financialData[index],
+      isActive: true,
+    }));
     await this.studentFinancialRepository.save(financialInfo);
 
     this.logger.log(
@@ -574,44 +700,43 @@ export class SeedService {
     // Ensure students exist
     await this.seedStudents(force);
 
-    const invoices = [
+    // Get actual student IDs
+    const students = await this.studentRepository.find({ take: 3 });
+    if (students.length < 3) {
+      throw new Error("Not enough students found for invoice seeding");
+    }
+
+    const invoiceData = [
       {
-        id: "INV001",
-        studentId: "STU001",
-        month: "July 2024",
-        issueDate: new Date("2024-07-01"),
+        month: "2024-07",
         dueDate: new Date("2024-07-31"),
         total: 8500,
-        paidAmount: 8500,
         status: InvoiceStatus.PAID,
         notes: "Monthly rent and utilities",
-        createdBy: "admin",
+        generatedBy: "admin",
       },
       {
-        id: "INV002",
-        studentId: "STU002",
-        month: "July 2024",
-        issueDate: new Date("2024-07-01"),
+        month: "2024-07",
         dueDate: new Date("2024-07-31"),
         total: 6200,
-        paidAmount: 6200,
         status: InvoiceStatus.PAID,
         notes: "Monthly rent and utilities",
-        createdBy: "admin",
+        generatedBy: "admin",
       },
       {
-        id: "INV003",
-        studentId: "STU003",
-        month: "July 2024",
-        issueDate: new Date("2024-07-01"),
+        month: "2024-07",
         dueDate: new Date("2024-07-31"),
         total: 6200,
-        paidAmount: 3000,
         status: InvoiceStatus.PARTIALLY_PAID,
         notes: "Monthly rent and utilities",
-        createdBy: "admin",
+        generatedBy: "admin",
       },
     ];
+
+    const invoices = invoiceData.map((invoice, index) => ({
+      ...invoice,
+      studentId: students[index].id,
+    }));
 
     if (force) {
       await this.invoiceItemRepository.createQueryBuilder().delete().execute();
@@ -620,66 +745,70 @@ export class SeedService {
 
     const savedInvoices = await this.invoiceRepository.save(invoices);
 
-    // Add invoice items
-    const invoiceItems = [
+    // Add invoice items using actual invoice IDs
+    const invoiceItemsData = [
       // Invoice 1 items
-      {
-        id: "ITEM001",
-        invoiceId: "INV001",
-        description: "Room Rent - Single AC",
-        quantity: 1,
-        unitPrice: 8000,
-        amount: 8000,
-        category: InvoiceItemCategory.ACCOMMODATION,
-      },
-      {
-        id: "ITEM002",
-        invoiceId: "INV001",
-        description: "Electricity Charges",
-        quantity: 1,
-        unitPrice: 500,
-        amount: 500,
-        category: InvoiceItemCategory.UTILITIES,
-      },
+      [
+        {
+          description: "Room Rent - Single AC",
+          quantity: 1,
+          unitPrice: 8000,
+          amount: 8000,
+          category: InvoiceItemCategory.ACCOMMODATION,
+        },
+        {
+          description: "Electricity Charges",
+          quantity: 1,
+          unitPrice: 500,
+          amount: 500,
+          category: InvoiceItemCategory.UTILITIES,
+        },
+      ],
       // Invoice 2 items
-      {
-        id: "ITEM003",
-        invoiceId: "INV002",
-        description: "Room Rent - Double AC",
-        quantity: 1,
-        unitPrice: 6000,
-        amount: 6000,
-        category: InvoiceItemCategory.ACCOMMODATION,
-      },
-      {
-        id: "ITEM004",
-        invoiceId: "INV002",
-        description: "Maintenance Fee",
-        quantity: 1,
-        unitPrice: 200,
-        amount: 200,
-        category: InvoiceItemCategory.SERVICES,
-      },
+      [
+        {
+          description: "Room Rent - Double AC",
+          quantity: 1,
+          unitPrice: 6000,
+          amount: 6000,
+          category: InvoiceItemCategory.ACCOMMODATION,
+        },
+        {
+          description: "Maintenance Fee",
+          quantity: 1,
+          unitPrice: 200,
+          amount: 200,
+          category: InvoiceItemCategory.SERVICES,
+        },
+      ],
       // Invoice 3 items
-      {
-        id: "ITEM005",
-        invoiceId: "INV003",
-        description: "Room Rent - Double AC",
-        quantity: 1,
-        unitPrice: 6000,
-        amount: 6000,
-        category: InvoiceItemCategory.ACCOMMODATION,
-      },
-      {
-        id: "ITEM006",
-        invoiceId: "INV003",
-        description: "Maintenance Fee",
-        quantity: 1,
-        unitPrice: 200,
-        amount: 200,
-        category: InvoiceItemCategory.SERVICES,
-      },
+      [
+        {
+          description: "Room Rent - Double AC",
+          quantity: 1,
+          unitPrice: 6000,
+          amount: 6000,
+          category: InvoiceItemCategory.ACCOMMODATION,
+        },
+        {
+          description: "Maintenance Fee",
+          quantity: 1,
+          unitPrice: 200,
+          amount: 200,
+          category: InvoiceItemCategory.SERVICES,
+        },
+      ],
     ];
+
+    const invoiceItems = [];
+    savedInvoices.forEach((invoice, invoiceIndex) => {
+      invoiceItemsData[invoiceIndex]?.forEach((itemData) => {
+        invoiceItems.push({
+          ...itemData,
+          invoiceId: invoice.id,
+        });
+      });
+    });
 
     const savedItems = await this.invoiceItemRepository.save(invoiceItems);
 
@@ -707,10 +836,14 @@ export class SeedService {
     // Ensure invoices exist
     await this.seedInvoices(force);
 
-    const payments = [
+    // Get actual student IDs
+    const students = await this.studentRepository.find({ take: 3 });
+    if (students.length < 3) {
+      throw new Error("Not enough students found for payment seeding");
+    }
+
+    const paymentData = [
       {
-        id: "PAY001",
-        studentId: "STU001",
         amount: 8500,
         paymentDate: new Date("2024-07-05"),
         paymentMethod: PaymentMethod.UPI,
@@ -721,8 +854,6 @@ export class SeedService {
         processedBy: "admin",
       },
       {
-        id: "PAY002",
-        studentId: "STU002",
         amount: 6200,
         paymentDate: new Date("2024-07-03"),
         paymentMethod: PaymentMethod.CASH,
@@ -733,8 +864,6 @@ export class SeedService {
         processedBy: "admin",
       },
       {
-        id: "PAY003",
-        studentId: "STU003",
         amount: 3000,
         paymentDate: new Date("2024-07-10"),
         paymentMethod: PaymentMethod.BANK_TRANSFER,
@@ -746,6 +875,11 @@ export class SeedService {
         bankName: "State Bank",
       },
     ];
+
+    const payments = paymentData.map((payment, index) => ({
+      ...payment,
+      studentId: students[index].id,
+    }));
 
     if (force) {
       await this.paymentRepository.createQueryBuilder().delete().execute();
@@ -770,12 +904,24 @@ export class SeedService {
     await this.seedStudents(false);
     await this.seedDiscountTypes(false);
 
+    // Get actual student and discount type IDs
+    const students = await this.studentRepository.find({ take: 3 });
+    const discountTypes = await this.discountTypeRepository.find({ take: 2 });
+    const invoices = await this.invoiceRepository.find({ take: 3 });
+
+    if (
+      students.length < 2 ||
+      discountTypes.length < 2 ||
+      invoices.length < 2
+    ) {
+      throw new Error("Not enough entities found for discount seeding");
+    }
+
     // Then seed actual discounts
     const discounts = [
       {
-        id: "DSC001",
-        studentId: "STU001",
-        discountTypeId: "DT001",
+        studentId: students[0].id,
+        discountTypeId: discountTypes[0].id,
         amount: 200,
         reason: "Early payment for July 2024",
         notes: "Paid 5 days before due date",
@@ -788,12 +934,11 @@ export class SeedService {
         isPercentage: false,
         percentageValue: null,
         maxAmount: null,
-        referenceId: "INV001",
+        referenceId: invoices[0].id,
       },
       {
-        id: "DSC002",
-        studentId: "STU003",
-        discountTypeId: "DT002",
+        studentId: students[2].id,
+        discountTypeId: discountTypes[1].id,
         amount: 600,
         reason: "Financial hardship assistance",
         notes: "Approved by management for financial difficulties",
@@ -806,7 +951,7 @@ export class SeedService {
         isPercentage: true,
         percentageValue: 10,
         maxAmount: 1000,
-        referenceId: "INV003",
+        referenceId: invoices[2].id,
       },
     ];
 
@@ -832,13 +977,22 @@ export class SeedService {
       };
     }
 
-    // Ensure students exist
+    // Ensure students and rooms exist
     await this.seedStudents(false);
+    await this.seedRooms(false);
 
-    const roomOccupants = [
+    // Get actual student and room IDs
+    const students = await this.studentRepository.find({ take: 3 });
+    const rooms = await this.roomRepository.find({ take: 3 });
+
+    if (students.length < 3 || rooms.length < 3) {
+      throw new Error(
+        "Not enough students or rooms found for occupant seeding"
+      );
+    }
+
+    const roomOccupantData = [
       {
-        roomId: "ROOM101",
-        studentId: "STU001",
         checkInDate: new Date("2024-01-15"),
         bedNumber: "1",
         status: "Active",
@@ -846,8 +1000,6 @@ export class SeedService {
         assignedBy: "admin",
       },
       {
-        roomId: "ROOM301",
-        studentId: "STU002",
         checkInDate: new Date("2024-01-20"),
         bedNumber: "1",
         status: "Active",
@@ -855,8 +1007,6 @@ export class SeedService {
         assignedBy: "admin",
       },
       {
-        roomId: "ROOM205",
-        studentId: "STU003",
         checkInDate: new Date("2024-02-01"),
         bedNumber: "1",
         status: "Active",
@@ -865,6 +1015,12 @@ export class SeedService {
       },
     ];
 
+    const roomOccupants = roomOccupantData.map((occupant, index) => ({
+      ...occupant,
+      roomId: rooms[index].id,
+      studentId: students[index].id,
+    }));
+
     if (force) {
       await this.roomOccupantRepository.createQueryBuilder().delete().execute();
     }
@@ -872,10 +1028,10 @@ export class SeedService {
     const savedOccupants =
       await this.roomOccupantRepository.save(roomOccupants);
 
-    // Update room occupancy counts
-    await this.roomRepository.update("ROOM101", { occupancy: 1 });
-    await this.roomRepository.update("ROOM301", { occupancy: 1 });
-    await this.roomRepository.update("ROOM205", { occupancy: 1 });
+    // Update room occupancy counts using actual room IDs
+    for (let i = 0; i < Math.min(rooms.length, 3); i++) {
+      await this.roomRepository.update(rooms[i].id, { occupancy: 1 });
+    }
 
     this.logger.log(`Seeded ${savedOccupants.length} room occupants`);
 
@@ -953,32 +1109,41 @@ export class SeedService {
     await this.seedPayments(false);
     await this.seedInvoices(false);
 
-    const paymentAllocations = [
+    // Get actual payment and invoice IDs
+    const payments = await this.paymentRepository.find({ take: 3 });
+    const invoices = await this.invoiceRepository.find({ take: 3 });
+
+    if (payments.length < 3 || invoices.length < 3) {
+      throw new Error(
+        "Not enough payments or invoices found for allocation seeding"
+      );
+    }
+
+    const paymentAllocationData = [
       {
-        paymentId: "PAY001",
-        invoiceId: "INV001",
-        amount: 8500,
+        allocatedAmount: 8500,
         allocationDate: new Date("2024-07-05"),
         notes: "Full payment allocation for July 2024",
-        isActive: true,
       },
       {
-        paymentId: "PAY002",
-        invoiceId: "INV002",
-        amount: 6200,
+        allocatedAmount: 6200,
         allocationDate: new Date("2024-07-03"),
         notes: "Full payment allocation for July 2024",
-        isActive: true,
       },
       {
-        paymentId: "PAY003",
-        invoiceId: "INV003",
-        amount: 3000,
+        allocatedAmount: 3000,
         allocationDate: new Date("2024-07-10"),
         notes: "Partial payment allocation for July 2024",
-        isActive: true,
       },
     ];
+
+    const paymentAllocations = paymentAllocationData.map(
+      (allocation, index) => ({
+        ...allocation,
+        paymentId: payments[index].id,
+        invoiceId: invoices[index].id,
+      })
+    );
 
     if (force) {
       await this.paymentAllocationRepository
@@ -1008,117 +1173,127 @@ export class SeedService {
     await this.seedPayments(false);
     await this.seedDiscounts(false);
 
+    // Get actual entity IDs
+    const students = await this.studentRepository.find({ take: 3 });
+    const invoices = await this.invoiceRepository.find({ take: 3 });
+    const payments = await this.paymentRepository.find({ take: 3 });
+    const discounts = await this.discountRepository.find({ take: 2 });
+
+    if (students.length < 3 || invoices.length < 3 || payments.length < 3) {
+      throw new Error("Not enough entities found for ledger seeding");
+    }
+
     const ledgerEntries = [
-      // Student 1 - John Doe ledger entries
+      // Student 1 - Invoice entry
       {
-        id: "LED001",
-        studentId: "STU001",
+        studentId: students[0].id,
         type: LedgerEntryType.INVOICE,
         date: new Date("2024-07-01"),
         description: "Monthly rent and utilities - July 2024",
-        referenceId: "INV001",
+        referenceId: invoices[0].id,
         debit: 8500,
         credit: 0,
         balance: 8500,
         balanceType: BalanceType.DR,
         notes: "Invoice generated for July 2024",
       },
+      // Student 1 - Payment entry
       {
-        id: "LED002",
-        studentId: "STU001",
+        studentId: students[0].id,
         type: LedgerEntryType.PAYMENT,
         date: new Date("2024-07-05"),
         description: "Payment received - July 2024",
-        referenceId: "PAY001",
+        referenceId: payments[0].id,
         debit: 0,
         credit: 8500,
         balance: 0,
         balanceType: BalanceType.NIL,
         notes: "Full payment received",
       },
+      // Student 2 - Invoice entry
       {
-        id: "LED003",
-        studentId: "STU001",
-        type: LedgerEntryType.DISCOUNT,
-        date: new Date("2024-07-05"),
-        description: "Early payment discount",
-        referenceId: "DSC001",
-        debit: 0,
-        credit: 200,
-        balance: -200,
-        balanceType: BalanceType.CR,
-        notes: "Early payment discount applied",
-      },
-
-      // Student 2 - Jane Smith ledger entries
-      {
-        id: "LED004",
-        studentId: "STU002",
+        studentId: students[1].id,
         type: LedgerEntryType.INVOICE,
         date: new Date("2024-07-01"),
         description: "Monthly rent and utilities - July 2024",
-        referenceId: "INV002",
+        referenceId: invoices[1].id,
         debit: 6200,
         credit: 0,
         balance: 6200,
         balanceType: BalanceType.DR,
         notes: "Invoice generated for July 2024",
       },
+      // Student 2 - Payment entry
       {
-        id: "LED005",
-        studentId: "STU002",
+        studentId: students[1].id,
         type: LedgerEntryType.PAYMENT,
         date: new Date("2024-07-03"),
         description: "Payment received - July 2024",
-        referenceId: "PAY002",
+        referenceId: payments[1].id,
         debit: 0,
         credit: 6200,
         balance: 0,
         balanceType: BalanceType.NIL,
         notes: "Full payment received",
       },
-
-      // Student 3 - Mike Johnson ledger entries
+      // Student 3 - Invoice entry
       {
-        id: "LED006",
-        studentId: "STU003",
+        studentId: students[2].id,
         type: LedgerEntryType.INVOICE,
         date: new Date("2024-07-01"),
         description: "Monthly rent and utilities - July 2024",
-        referenceId: "INV003",
+        referenceId: invoices[2].id,
         debit: 6200,
         credit: 0,
         balance: 6200,
         balanceType: BalanceType.DR,
         notes: "Invoice generated for July 2024",
       },
+      // Student 3 - Payment entry
       {
-        id: "LED007",
-        studentId: "STU003",
+        studentId: students[2].id,
         type: LedgerEntryType.PAYMENT,
         date: new Date("2024-07-10"),
         description: "Partial payment received - July 2024",
-        referenceId: "PAY003",
+        referenceId: payments[2].id,
         debit: 0,
         credit: 3000,
         balance: 3200,
         balanceType: BalanceType.DR,
         notes: "Partial payment received",
       },
-      {
-        id: "LED008",
-        studentId: "STU003",
-        type: LedgerEntryType.DISCOUNT,
-        date: new Date("2024-07-01"),
-        description: "Financial hardship assistance",
-        referenceId: "DSC002",
-        debit: 0,
-        credit: 600,
-        balance: 2600,
-        balanceType: BalanceType.DR,
-        notes: "Financial hardship discount applied",
-      },
     ];
+
+    // Add discount entries if available
+    if (discounts.length > 0) {
+      ledgerEntries.push({
+        studentId: students[0].id,
+        type: LedgerEntryType.DISCOUNT,
+        date: new Date("2024-07-05"),
+        description: "Early payment discount",
+        referenceId: discounts[0].id,
+        debit: 0,
+        credit: 200,
+        balance: -200,
+        balanceType: BalanceType.CR,
+        notes: "Early payment discount applied",
+      });
+
+      if (discounts.length > 1) {
+        ledgerEntries.push({
+          studentId: students[2].id,
+          type: LedgerEntryType.DISCOUNT,
+          date: new Date("2024-07-01"),
+          description: "Financial hardship assistance",
+          referenceId: discounts[1].id,
+          debit: 0,
+          credit: 600,
+          balance: 2600,
+          balanceType: BalanceType.DR,
+          notes: "Financial hardship discount applied",
+        });
+      }
+    }
 
     if (force) {
       await this.ledgerRepository.createQueryBuilder().delete().execute();
@@ -1141,7 +1316,93 @@ export class SeedService {
 
     const bookings = [
       {
-        id: "BKG001",
+        name: "Rajesh Maharjan",
+        phone: "+9779841234580",
+        email: "rajesh.maharjan@email.com",
+        guardianName: "Gopal Maharjan",
+        guardianPhone: "+9779841234581",
+        preferredRoom: "Single AC",
+        course: "Computer Science",
+        institution: "Tribhuvan University",
+        requestDate: new Date("2024-07-15"),
+        checkInDate: new Date("2024-08-01"),
+        duration: "12 months",
+        status: BookingStatus.PENDING,
+        notes: "Prefers ground floor room",
+        emergencyContact: "+9779841234581",
+        address: "Lalitpur, Nepal",
+        idProofType: "Citizenship",
+        idProofNumber: "12-01-75-12345",
+        priorityScore: 85,
+        source: "website",
+      },
+      {
+        name: "Anita Gurung",
+        phone: "+9779841234582",
+        email: "anita.gurung@email.com",
+        guardianName: "Dhan Bahadur Gurung",
+        guardianPhone: "+9779841234583",
+        preferredRoom: "Double AC",
+        course: "Business Administration",
+        institution: "Kathmandu University",
+        requestDate: new Date("2024-07-20"),
+        checkInDate: new Date("2024-08-15"),
+        duration: "10 months",
+        status: BookingStatus.APPROVED,
+        notes: "Approved for room 102",
+        emergencyContact: "+9779841234583",
+        address: "Pokhara, Nepal",
+        idProofType: "Citizenship",
+        idProofNumber: "11-02-76-54321",
+        priorityScore: 92,
+        source: "referral",
+        approvedDate: new Date("2024-07-22"),
+        processedBy: "admin",
+        assignedRoom: "102",
+      },
+      {
+        name: "Suresh Tamang",
+        phone: "+9779841234584",
+        email: "suresh.tamang@email.com",
+        guardianName: "Pemba Tamang",
+        guardianPhone: "+9779841234585",
+        preferredRoom: "Triple Non-AC",
+        course: "Civil Engineering",
+        institution: "Pulchowk Campus",
+        requestDate: new Date("2024-07-25"),
+        checkInDate: new Date("2024-08-20"),
+        duration: "8 months",
+        status: BookingStatus.PENDING,
+        notes: "Budget-friendly option preferred",
+        emergencyContact: "+9779841234585",
+        address: "Sindhupalchok, Nepal",
+        idProofType: "Citizenship",
+        idProofNumber: "13-03-77-98765",
+        priorityScore: 78,
+        source: "walk-in",
+      },
+      {
+        name: "Kamala Rai",
+        phone: "+9779841234586",
+        email: "kamala.rai@email.com",
+        guardianName: "Tek Bahadur Rai",
+        guardianPhone: "+9779841234587",
+        preferredRoom: "Single AC",
+        course: "Pharmacy",
+        institution: "KU School of Pharmacy",
+        requestDate: new Date("2024-07-28"),
+        checkInDate: new Date("2024-08-25"),
+        duration: "12 months",
+        status: BookingStatus.PENDING,
+        notes: "Quiet environment needed for studies",
+        emergencyContact: "+9779841234587",
+        address: "Dharan, Nepal",
+        idProofType: "Citizenship",
+        idProofNumber: "14-04-78-11111",
+        priorityScore: 88,
+        source: "website",
+      },
+      {
         name: "Alice Brown",
         phone: "9876543240",
         email: "alice.brown@email.com",
@@ -1150,20 +1411,19 @@ export class SeedService {
         preferredRoom: "Single AC",
         course: "Computer Science",
         institution: "Tech University",
-        requestDate: new Date("2024-07-15"),
-        checkInDate: new Date("2024-08-01"),
+        requestDate: new Date("2024-08-01"),
+        checkInDate: new Date("2024-09-01"),
         duration: "12 months",
         status: BookingStatus.PENDING,
-        notes: "Prefers ground floor room",
+        notes: "International student",
         emergencyContact: "9876543241",
         address: "321 Applicant Street, City",
-        idProofType: "Aadhar",
-        idProofNumber: "123456789014",
+        idProofType: "Passport",
+        idProofNumber: "A12345678",
         priorityScore: 85,
         source: "website",
       },
       {
-        id: "BKG002",
         name: "Bob Wilson",
         phone: "9876543250",
         email: "bob.wilson@email.com",
@@ -1172,20 +1432,20 @@ export class SeedService {
         preferredRoom: "Double AC",
         course: "Mechanical Engineering",
         institution: "Engineering College",
-        requestDate: new Date("2024-07-20"),
-        checkInDate: new Date("2024-08-15"),
+        requestDate: new Date("2024-08-05"),
+        checkInDate: new Date("2024-09-15"),
         duration: "10 months",
         status: BookingStatus.APPROVED,
-        notes: "Approved for room 102",
+        notes: "Approved for room 103",
         emergencyContact: "9876543251",
         address: "654 Applicant Avenue, City",
         idProofType: "Passport",
-        idProofNumber: "P2345678",
+        idProofNumber: "B87654321",
         priorityScore: 92,
         source: "referral",
-        approvedDate: new Date("2024-07-22"),
+        approvedDate: new Date("2024-08-07"),
         processedBy: "admin",
-        assignedRoom: "102",
+        assignedRoom: "103",
       },
     ];
 

@@ -11,7 +11,7 @@ import {
 } from './dto/generate-report.dto';
 
 @ApiTags('reports')
-@Controller('api/v1/reports')
+@Controller('reports')
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 

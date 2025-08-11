@@ -5,7 +5,7 @@ import { CreateBookingDto, ApproveBookingDto, RejectBookingDto } from './dto/cre
 import { UpdateBookingDto } from './dto/update-booking.dto';
 
 @ApiTags('bookings')
-@Controller('api/v1/booking-requests')
+@Controller('booking-requests')
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
@@ -15,10 +15,10 @@ export class BookingsController {
   async getAllBookingRequests(@Query() query: any) {
     const result = await this.bookingsService.findAll(query);
     
-    // Return EXACT same format as current Express API
+    // Return format expected by frontend
     return {
       status: HttpStatus.OK,
-      result: result
+      data: result
     };
   }
 
@@ -28,10 +28,10 @@ export class BookingsController {
   async getBookingStats() {
     const stats = await this.bookingsService.getStats();
     
-    // Return EXACT same format as current Express API
+    // Return format expected by frontend
     return {
       status: HttpStatus.OK,
-      stats: stats
+      data: stats
     };
   }
 

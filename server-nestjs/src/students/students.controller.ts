@@ -10,7 +10,7 @@ import {
 } from './dto';
 
 @ApiTags('students')
-@Controller('api/v1/students')
+@Controller('students')
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
