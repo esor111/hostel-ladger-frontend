@@ -1,5 +1,6 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { config } from 'dotenv';
+import * as path from 'path';
 
 // Import all entities
 import { Student } from '../students/entities/student.entity';
@@ -82,11 +83,11 @@ export const dataSourceOptions: DataSourceOptions = {
     MaintenanceRequest,
     Notification,
   ],
-  migrations: ['src/database/migrations/*{.ts,.js}'],
+  migrations: [path.join(__dirname, 'migrations', '*{.ts,.js}')],
   synchronize: false, // Always false in production
   logging: process.env.NODE_ENV === 'development',
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  migrationsRun: true, // Auto-run migrations on startup
+  migrationsRun: false, // Disable auto-run migrations on startup
   migrationsTableName: 'typeorm_migrations',
 };
 
