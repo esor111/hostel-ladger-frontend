@@ -1,5 +1,5 @@
 import { Entity, Column, OneToMany, ManyToOne, JoinColumn, Index } from 'typeorm';
-import { BaseEntityWithCustomId } from '../../common/entities/base.entity';
+import { BaseEntity } from '../../common/entities/base.entity';
 import { Room } from '../../rooms/entities/room.entity';
 import { RoomOccupant } from '../../rooms/entities/room-occupant.entity';
 import { BookingRequest } from '../../bookings/entities/booking-request.entity';
@@ -23,7 +23,7 @@ export enum StudentStatus {
 @Index(['phone'], { unique: true })
 @Index(['status'])
 @Index(['enrollmentDate'])
-export class Student extends BaseEntityWithCustomId {
+export class Student extends BaseEntity {
   @Column({ length: 255 })
   name: string;
 
@@ -50,7 +50,7 @@ export class Student extends BaseEntityWithCustomId {
   @Column({ name: 'room_id', nullable: true })
   roomId: string;
 
-  @Column({ name: 'booking_request_id', length: 50, nullable: true })
+  @Column({ name: 'booking_request_id', nullable: true })
   bookingRequestId: string;
 
   // Relations

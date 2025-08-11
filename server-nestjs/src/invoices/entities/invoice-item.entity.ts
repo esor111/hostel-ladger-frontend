@@ -1,5 +1,5 @@
 import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
-import { BaseEntityWithCustomId } from '../../common/entities/base.entity';
+import { BaseEntity } from '../../common/entities/base.entity';
 import { Invoice } from './invoice.entity';
 
 export enum InvoiceItemCategory {
@@ -13,8 +13,8 @@ export enum InvoiceItemCategory {
 @Entity('invoice_items')
 @Index(['invoiceId'])
 @Index(['category'])
-export class InvoiceItem extends BaseEntityWithCustomId {
-  @Column({ name: 'invoice_id', length: 50 })
+export class InvoiceItem extends BaseEntity {
+  @Column({ name: 'invoice_id' })
   invoiceId: string;
 
   @Column({ length: 255 })

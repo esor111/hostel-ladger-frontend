@@ -15,7 +15,7 @@ export enum FeeType {
 @Index(['studentId', 'feeType'])
 @Index(['isActive'])
 export class StudentFinancialInfo extends BaseEntity {
-  @Column({ name: 'student_id', length: 50 })
+  @Column({ name: 'student_id' })
   studentId: string;
 
   @Column({

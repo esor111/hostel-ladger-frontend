@@ -1,5 +1,5 @@
 import { Entity, Column, OneToOne, Index } from 'typeorm';
-import { BaseEntityWithCustomId } from '../../common/entities/base.entity';
+import { BaseEntity } from '../../common/entities/base.entity';
 import { Student } from '../../students/entities/student.entity';
 
 export enum BookingStatus {
@@ -16,7 +16,7 @@ export enum BookingStatus {
 @Index(['checkInDate'])
 @Index(['phone'])
 @Index(['email'])
-export class BookingRequest extends BaseEntityWithCustomId {
+export class BookingRequest extends BaseEntity {
   @Column({ length: 255 })
   name: string;
 

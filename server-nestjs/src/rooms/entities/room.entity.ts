@@ -1,5 +1,5 @@
 import { Entity, Column, OneToMany, OneToOne, ManyToOne, JoinColumn, Index } from 'typeorm';
-import { BaseEntityWithCustomId } from '../../common/entities/base.entity';
+import { BaseEntity } from '../../common/entities/base.entity';
 import { Student } from '../../students/entities/student.entity';
 import { RoomAmenity } from './room-amenity.entity';
 import { RoomOccupant } from './room-occupant.entity';
@@ -35,82 +35,71 @@ export enum MaintenanceStatus {
 @Index(['buildingId'])
 @Index(['roomTypeId'])
 @Index(['gender'])
-export class Room extends BaseEntityWithCustomId {
+export class Room extends BaseEntity {
   @Column({ length: 255 })
   name: string;
 
-  @Column({ name: 'room_number', length: 20, unique: true })
+  @Column({ length: 20, unique: true })
   roomNumber: string;
 
-  @Column({ name: 'bed_count', type: 'int', default: 1 })
-  bedCount: number;
-
   @Column({ type: 'int', default: 1 })
-  capacity: number;
+  bedCount: number;
 
   @Column({ type: 'int', default: 0 })
   occupancy: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-  rent: number;
+  // Computed property for capacity (same as bedCount for now)
+  get capacity(): number {
+    return this.bedCount;
+  }
 
-  @Column({
-    type: 'enum',
-    enum: Gender,
-    default: Gender.ANY
-  })
-  gender: Gender;
+  // Computed property for rent (would need to be fetched from room type)
+  get rent(): number {
+    return 0; // Placeholder - should be calculated from room type
+  }
 
-  @Column({
-    type: 'enum',
-    enum: RoomStatus,
-    default: RoomStatus.ACTIVE
-  })
-  status: RoomStatus;
+  @Column({ type: 'varchar', nullable: true })
+  gender: string;
 
-  @Column({
-    name: 'maintenance_status',
-    type: 'enum',
-    enum: MaintenanceStatus,
-    default: MaintenanceStatus.GOOD
-  })
-  maintenanceStatus: MaintenanceStatus;
+  @Column({ type: 'varchar' })
+  status: string;
 
-  @Column({ name: 'last_cleaned', type: 'date', nullable: true })
+  @Column({ type: 'varchar', nullable: true })
+  maintenanceStatus: string;
+
+  @Column({ type: 'timestamp', nullable: true })
   lastCleaned: Date;
 
-  @Column({ name: 'last_maintenance', type: 'date', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   lastMaintenance: Date;
 
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'text', nullable: true })
-  notes: string;
-
   // Foreign Keys
-  @Column({ name: 'building_id', nullable: true })
+  @Column({ nullable: true })
   buildingId: string;
 
-  @Column({ name: 'room_type_id', nullable: true })
+  @Column({ nullable: true })
   roomTypeId: string;
 
-  // Computed Properties
+  // availableBeds is a generated column in the database
   get availableBeds(): number {
     return this.bedCount - this.occupancy;
   }
 
+  // Computed Properties
   get isAvailable(): boolean {
-    return this.status === RoomStatus.ACTIVE && this.availableBeds > 0;
+    return this.status === 'ACTIVE' && this.availableBeds > 0;
   }
 
   // Relations
   @ManyToOne(() => Building, building => building.rooms, { nullable: true })
-  @JoinColumn({ name: 'building_id' })
+  @JoinColumn({ name: 'buildingId' })
   building: Building;
 
   @ManyToOne(() => RoomType, roomType => roomType.rooms, { nullable: true })
-  @JoinColumn({ name: 'room_type_id' })
+  @JoinColumn({ name: 'roomTypeId' })
   roomType: RoomType;
 
   @OneToMany(() => Student, student => student.room)

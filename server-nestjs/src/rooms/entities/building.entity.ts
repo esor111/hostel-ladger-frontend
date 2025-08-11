@@ -1,5 +1,5 @@
 import { Entity, Column, OneToMany, Index } from 'typeorm';
-import { BaseEntityWithCustomId } from '../../common/entities/base.entity';
+import { BaseEntity } from '../../common/entities/base.entity';
 import { Room } from './room.entity';
 
 export enum BuildingStatus {
@@ -10,41 +10,21 @@ export enum BuildingStatus {
 
 @Entity('buildings')
 @Index(['name'], { unique: true })
-@Index(['status'])
-export class Building extends BaseEntityWithCustomId {
+export class Building extends BaseEntity {
   @Column({ length: 255, unique: true })
   name: string;
-
-  @Column({ length: 100, nullable: true })
-  code: string;
 
   @Column({ type: 'text', nullable: true })
   address: string;
 
-  @Column({ name: 'total_floors', type: 'int', default: 1 })
-  totalFloors: number;
+  @Column({ type: 'int', nullable: true })
+  floors: number;
 
-  @Column({ name: 'total_rooms', type: 'int', default: 0 })
+  @Column({ type: 'int', nullable: true })
   totalRooms: number;
 
-  @Column({
-    type: 'enum',
-    enum: BuildingStatus,
-    default: BuildingStatus.ACTIVE
-  })
-  status: BuildingStatus;
-
-  @Column({ name: 'construction_year', type: 'int', nullable: true })
-  constructionYear: number;
-
-  @Column({ name: 'last_renovation', type: 'date', nullable: true })
-  lastRenovation: Date;
-
-  @Column({ type: 'text', nullable: true })
-  description: string;
-
-  @Column({ type: 'jsonb', nullable: true })
-  facilities: string[];
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
 
   // Relations
   @OneToMany(() => Room, room => room.building)

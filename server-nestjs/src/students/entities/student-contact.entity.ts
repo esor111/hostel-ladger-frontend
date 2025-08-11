@@ -12,7 +12,7 @@ export enum ContactType {
 @Entity('student_contacts')
 @Index(['studentId', 'type'])
 export class StudentContact extends BaseEntity {
-  @Column({ name: 'student_id', length: 50 })
+  @Column({ name: 'student_id' })
   studentId: string;
 
   @Column({

@@ -130,7 +130,6 @@ export class LedgerService {
     const newBalance = currentBalance.currentBalance + invoice.total;
     
     const entry = this.ledgerRepository.create({
-      id: this.generateEntryId(),
       studentId: invoice.studentId,
       date: new Date(),
       type: LedgerEntryType.INVOICE,
@@ -140,8 +139,7 @@ export class LedgerService {
       credit: 0,
       balance: Math.abs(newBalance),
       balanceType: newBalance > 0 ? BalanceType.DR : newBalance < 0 ? BalanceType.CR : BalanceType.NIL,
-      entryNumber: await this.getNextEntryNumber(),
-      createdBy: 'system'
+      entryNumber: await this.getNextEntryNumber()
     });
 
     const savedEntry = await this.ledgerRepository.save(entry);
@@ -163,7 +161,6 @@ export class LedgerService {
     const newBalance = currentBalance.currentBalance - payment.amount;
     
     const entry = this.ledgerRepository.create({
-      id: this.generateEntryId(),
       studentId: payment.studentId,
       date: payment.paymentDate,
       type: LedgerEntryType.PAYMENT,
@@ -173,8 +170,7 @@ export class LedgerService {
       credit: payment.amount,
       balance: Math.abs(newBalance),
       balanceType: newBalance > 0 ? BalanceType.DR : newBalance < 0 ? BalanceType.CR : BalanceType.NIL,
-      entryNumber: await this.getNextEntryNumber(),
-      createdBy: payment.processedBy || 'system'
+      entryNumber: await this.getNextEntryNumber()
     });
 
     const savedEntry = await this.ledgerRepository.save(entry);
@@ -196,7 +192,6 @@ export class LedgerService {
     const newBalance = currentBalance.currentBalance - discount.amount;
     
     const entry = this.ledgerRepository.create({
-      id: this.generateEntryId(),
       studentId: discount.studentId,
       date: discount.date,
       type: LedgerEntryType.DISCOUNT,
@@ -207,7 +202,7 @@ export class LedgerService {
       balance: Math.abs(newBalance),
       balanceType: newBalance > 0 ? BalanceType.DR : newBalance < 0 ? BalanceType.CR : BalanceType.NIL,
       entryNumber: await this.getNextEntryNumber(),
-      createdBy: discount.appliedBy || 'system'
+
     });
 
     const savedEntry = await this.ledgerRepository.save(entry);
@@ -218,7 +213,7 @@ export class LedgerService {
     return this.transformToApiResponse(savedEntry);
   }
 
-  async createAdjustmentEntry(studentId: string, amount: number, description: string, type: 'debit' | 'credit', createdBy: string = 'admin') {
+  async createAdjustmentEntry(studentId: string, amount: number, description: string, type: 'debit' | 'credit') {
     const student = await this.studentRepository.findOne({ where: { id: studentId } });
     if (!student) {
       throw new NotFoundException('Student not found');
@@ -230,7 +225,6 @@ export class LedgerService {
     const newBalance = currentBalance.currentBalance + adjustmentAmount;
     
     const entry = this.ledgerRepository.create({
-      id: this.generateEntryId(),
       studentId,
       date: new Date(),
       type: LedgerEntryType.ADJUSTMENT,
@@ -240,8 +234,7 @@ export class LedgerService {
       credit: type === 'credit' ? amount : 0,
       balance: Math.abs(newBalance),
       balanceType: newBalance > 0 ? BalanceType.DR : newBalance < 0 ? BalanceType.CR : BalanceType.NIL,
-      entryNumber: await this.getNextEntryNumber(),
-      createdBy
+      entryNumber: await this.getNextEntryNumber()
     });
 
     const savedEntry = await this.ledgerRepository.save(entry);
@@ -275,7 +268,6 @@ export class LedgerService {
     const newBalance = currentBalance.currentBalance - reversalAmount;
     
     const reversalEntry = this.ledgerRepository.create({
-      id: this.generateEntryId(),
       studentId: entry.studentId,
       date: new Date(),
       type: entry.type,
@@ -285,8 +277,7 @@ export class LedgerService {
       credit: entry.debit,
       balance: Math.abs(newBalance),
       balanceType: newBalance > 0 ? BalanceType.DR : newBalance < 0 ? BalanceType.CR : BalanceType.NIL,
-      entryNumber: await this.getNextEntryNumber(),
-      createdBy: reversedBy
+      entryNumber: await this.getNextEntryNumber()
     });
 
     const savedReversalEntry = await this.ledgerRepository.save(reversalEntry);
@@ -355,7 +346,6 @@ export class LedgerService {
       balance: entry.balance,
       balanceType: entry.balanceType,
       notes: entry.notes,
-      createdBy: entry.createdBy,
       createdAt: entry.createdAt
     };
   }
@@ -373,7 +363,5 @@ export class LedgerService {
     return (lastEntry?.entryNumber || 0) + 1;
   }
 
-  private generateEntryId(): string {
-    return `LED${Date.now()}`;
-  }
+
 }

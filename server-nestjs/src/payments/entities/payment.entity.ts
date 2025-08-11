@@ -1,5 +1,5 @@
 import { Entity, Column, ManyToOne, OneToMany, JoinColumn, Index } from 'typeorm';
-import { BaseEntityWithCustomId } from '../../common/entities/base.entity';
+import { BaseEntity } from '../../common/entities/base.entity';
 import { Student } from '../../students/entities/student.entity';
 import { PaymentInvoiceAllocation } from './payment-invoice-allocation.entity';
 
@@ -27,8 +27,8 @@ export enum PaymentStatus {
 @Index(['paymentMethod'])
 @Index(['status'])
 @Index(['amount'])
-export class Payment extends BaseEntityWithCustomId {
-  @Column({ name: 'student_id', length: 50 })
+export class Payment extends BaseEntity {
+  @Column({ name: 'student_id' })
   studentId: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })

@@ -19,26 +19,14 @@ export class Amenity extends BaseEntity {
   @Column({ length: 100, unique: true })
   name: string; // Wi-Fi, AC, TV, etc.
 
-  @Column({
-    type: 'enum',
-    enum: AmenityCategory
-  })
-  category: AmenityCategory;
+  @Column({ type: 'varchar' })
+  category: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ name: 'maintenance_required', default: false })
-  maintenanceRequired: boolean;
-
-  @Column({ name: 'maintenance_frequency_days', type: 'int', nullable: true })
-  maintenanceFrequencyDays: number;
-
-  @Column({ name: 'is_active', default: true })
+  @Column({ default: true })
   isActive: boolean;
-
-  @Column({ type: 'jsonb', nullable: true })
-  specifications: Record<string, any>;
 
   // Relations
   @OneToMany(() => RoomAmenity, roomAmenity => roomAmenity.amenity)

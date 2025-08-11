@@ -68,8 +68,7 @@ export class LedgerController {
       adjustmentDto.studentId,
       adjustmentDto.amount,
       adjustmentDto.description,
-      adjustmentDto.type,
-      adjustmentDto.createdBy
+      adjustmentDto.type
     );
     
     // Return EXACT same format as current Express API

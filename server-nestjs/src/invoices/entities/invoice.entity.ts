@@ -1,5 +1,5 @@
 import { Entity, Column, ManyToOne, OneToMany, JoinColumn, Index } from 'typeorm';
-import { BaseEntityWithCustomId } from '../../common/entities/base.entity';
+import { BaseEntity } from '../../common/entities/base.entity';
 import { Student } from '../../students/entities/student.entity';
 import { InvoiceItem } from './invoice-item.entity';
 import { PaymentInvoiceAllocation } from '../../payments/entities/payment-invoice-allocation.entity';
@@ -17,8 +17,8 @@ export enum InvoiceStatus {
 @Index(['month'])
 @Index(['status'])
 @Index(['dueDate'])
-export class Invoice extends BaseEntityWithCustomId {
-  @Column({ name: 'student_id', length: 50 })
+export class Invoice extends BaseEntity {
+  @Column({ name: 'student_id' })
   studentId: string;
 
   @Column({ length: 7 }) // YYYY-MM format

@@ -6,7 +6,7 @@ import { Student } from './student.entity';
 @Index(['studentId'])
 @Index(['isActive'])
 export class StudentAcademicInfo extends BaseEntity {
-  @Column({ name: 'student_id', length: 50 })
+  @Column({ name: 'student_id' })
   studentId: string;
 
   @Column({ length: 255 })

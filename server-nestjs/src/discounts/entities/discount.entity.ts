@@ -1,5 +1,5 @@
 import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
-import { BaseEntityWithCustomId } from '../../common/entities/base.entity';
+import { BaseEntity } from '../../common/entities/base.entity';
 import { Student } from '../../students/entities/student.entity';
 import { DiscountType } from './discount-type.entity';
 
@@ -21,8 +21,8 @@ export enum DiscountApplication {
 @Index(['status'])
 @Index(['date'])
 @Index(['discountTypeId'])
-export class Discount extends BaseEntityWithCustomId {
-  @Column({ name: 'student_id', length: 50 })
+export class Discount extends BaseEntity {
+  @Column({ name: 'student_id' })
   studentId: string;
 
   @Column({ name: 'discount_type_id', nullable: true })
@@ -73,7 +73,7 @@ export class Discount extends BaseEntityWithCustomId {
   @Column({ name: 'max_amount', type: 'decimal', precision: 10, scale: 2, nullable: true })
   maxAmount: number;
 
-  @Column({ name: 'reference_id', length: 50, nullable: true })
+  @Column({ name: 'reference_id', nullable: true })
   referenceId: string; // Invoice ID, Payment ID, etc.
 
   // Computed Properties for API compatibility

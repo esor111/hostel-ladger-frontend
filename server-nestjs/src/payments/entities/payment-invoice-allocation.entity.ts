@@ -8,10 +8,10 @@ import { Invoice } from '../../invoices/entities/invoice.entity';
 @Index(['paymentId'])
 @Index(['invoiceId'])
 export class PaymentInvoiceAllocation extends BaseEntity {
-  @Column({ name: 'payment_id', length: 50 })
+  @Column({ name: 'payment_id' })
   paymentId: string;
 
-  @Column({ name: 'invoice_id', length: 50 })
+  @Column({ name: 'invoice_id' })
   invoiceId: string;
 
   @Column({ name: 'allocated_amount', type: 'decimal', precision: 10, scale: 2 })

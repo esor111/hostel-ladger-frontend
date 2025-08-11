@@ -1,5 +1,5 @@
 import { Entity, Column, Index } from 'typeorm';
-import { BaseEntityWithCustomId } from '../../common/entities/base.entity';
+import { BaseEntity } from '../../common/entities/base.entity';
 
 export enum ReportType {
   FINANCIAL = 'financial',
@@ -32,7 +32,7 @@ export enum ReportStatus {
 @Index(['generatedAt'])
 @Index(['status'])
 @Index(['isScheduled'])
-export class Report extends BaseEntityWithCustomId {
+export class Report extends BaseEntity {
   @Column({ length: 255 })
   name: string;
 

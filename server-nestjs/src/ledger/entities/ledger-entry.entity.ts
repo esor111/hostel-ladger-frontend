@@ -1,5 +1,5 @@
 import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
-import { BaseEntityWithCustomId } from '../../common/entities/base.entity';
+import { BaseEntity } from '../../common/entities/base.entity';
 import { Student } from '../../students/entities/student.entity';
 
 export enum LedgerEntryType {
@@ -25,8 +25,8 @@ export enum BalanceType {
 @Index(['type'])
 @Index(['referenceId'])
 @Index(['balanceType'])
-export class LedgerEntry extends BaseEntityWithCustomId {
-  @Column({ name: 'student_id', length: 50 })
+export class LedgerEntry extends BaseEntity {
+  @Column({ name: 'student_id' })
   studentId: string;
 
   @Column({ type: 'date' })
@@ -41,7 +41,7 @@ export class LedgerEntry extends BaseEntityWithCustomId {
   @Column({ type: 'text' })
   description: string;
 
-  @Column({ name: 'reference_id', length: 50, nullable: true })
+  @Column({ name: 'reference_id', nullable: true })
   referenceId: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })

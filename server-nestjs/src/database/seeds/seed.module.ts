@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DatabaseModule } from '../database.module';
 
 import { SeedController } from './seed.controller';
 import { SeedService } from './seed.service';
@@ -35,6 +36,7 @@ import { Report } from '../../reports/entities/report.entity';
 
 @Module({
   imports: [
+    DatabaseModule,
     TypeOrmModule.forFeature([
       // Student entities
       Student,

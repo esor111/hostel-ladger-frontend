@@ -193,8 +193,7 @@ export class DiscountsService {
 
   async expireDiscount(id: string, expiredBy: string = 'system') {
     await this.discountRepository.update(id, {
-      status: DiscountStatus.EXPIRED,
-      updatedBy: expiredBy
+      status: DiscountStatus.EXPIRED
     });
 
     return {

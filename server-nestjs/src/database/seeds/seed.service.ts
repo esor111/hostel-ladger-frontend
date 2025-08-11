@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 
 // Import all entities
-import { Student } from "../../students/entities/student.entity";
+import { Student, StudentStatus } from "../../students/entities/student.entity";
 import {
   StudentContact,
   ContactType,
@@ -20,9 +20,9 @@ import {
   MaintenanceStatus,
   Gender,
 } from "../../rooms/entities/room.entity";
-import { Building, BuildingStatus } from "../../rooms/entities/building.entity";
-import { RoomType, PricingModel } from "../../rooms/entities/room-type.entity";
-import { Amenity, AmenityCategory } from "../../rooms/entities/amenity.entity";
+import { Building } from "../../rooms/entities/building.entity";
+import { RoomType } from "../../rooms/entities/room-type.entity";
+import { Amenity } from "../../rooms/entities/amenity.entity";
 import { RoomAmenity } from "../../rooms/entities/room-amenity.entity";
 import { RoomLayout } from "../../rooms/entities/room-layout.entity";
 import { RoomOccupant } from "../../rooms/entities/room-occupant.entity";
@@ -209,33 +209,17 @@ export class SeedService {
 
     const buildings = [
       {
-        id: "BLD001",
         name: "Main Building",
         address: "123 Hostel Street, City",
-        totalFloors: 4,
+        floors: 4,
         totalRooms: 50,
-        status: BuildingStatus.ACTIVE,
-        description: "Main hostel building with modern facilities",
-        facilities: ["WiFi", "Elevator", "Security", "Parking"],
-        contactInfo: {
-          phone: "+1234567890",
-          email: "main@hostel.com",
-        },
         isActive: true,
       },
       {
-        id: "BLD002",
         name: "Annex Building",
         address: "456 Hostel Avenue, City",
-        totalFloors: 3,
+        floors: 3,
         totalRooms: 30,
-        status: BuildingStatus.ACTIVE,
-        description: "Secondary building for additional accommodation",
-        facilities: ["WiFi", "Security", "Common Room"],
-        contactInfo: {
-          phone: "+1234567891",
-          email: "annex@hostel.com",
-        },
         isActive: true,
       },
     ];
@@ -260,39 +244,33 @@ export class SeedService {
 
     const roomTypes = [
       {
-        id: "RT001",
         name: "Single AC",
         description: "Single occupancy room with air conditioning",
         defaultBedCount: 1,
         maxOccupancy: 1,
         baseMonthlyRate: 8000,
         baseDailyRate: 267,
-        pricingModel: PricingModel.MONTHLY,
-        features: ["AC", "WiFi", "Study Table", "Wardrobe"],
+        pricingModel: "monthly",
         isActive: true,
       },
       {
-        id: "RT002",
         name: "Double AC",
         description: "Double occupancy room with air conditioning",
         defaultBedCount: 2,
         maxOccupancy: 2,
         baseMonthlyRate: 6000,
         baseDailyRate: 200,
-        pricingModel: PricingModel.MONTHLY,
-        features: ["AC", "WiFi", "Study Tables", "Wardrobes"],
+        pricingModel: "monthly",
         isActive: true,
       },
       {
-        id: "RT003",
         name: "Triple Non-AC",
         description: "Triple occupancy room without air conditioning",
         defaultBedCount: 3,
         maxOccupancy: 3,
         baseMonthlyRate: 4000,
         baseDailyRate: 133,
-        pricingModel: PricingModel.MONTHLY,
-        features: ["WiFi", "Study Tables", "Wardrobes", "Fan"],
+        pricingModel: "monthly",
         isActive: true,
       },
     ];
@@ -318,37 +296,32 @@ export class SeedService {
     const amenities = [
       {
         name: "Air Conditioning",
-        category: AmenityCategory.UTILITIES,
+        category: "UTILITIES",
         description: "Split AC unit for room cooling",
-        maintenanceRequired: true,
         isActive: true,
       },
       {
         name: "WiFi",
-        category: AmenityCategory.UTILITIES,
+        category: "UTILITIES",
         description: "High-speed internet connection",
-        maintenanceRequired: false,
         isActive: true,
       },
       {
         name: "Study Table",
-        category: AmenityCategory.FURNITURE,
+        category: "FURNITURE",
         description: "Wooden study table with drawers",
-        maintenanceRequired: false,
         isActive: true,
       },
       {
         name: "Wardrobe",
-        category: AmenityCategory.FURNITURE,
+        category: "FURNITURE",
         description: "3-door wooden wardrobe",
-        maintenanceRequired: false,
         isActive: true,
       },
       {
         name: "Ceiling Fan",
-        category: AmenityCategory.UTILITIES,
+        category: "UTILITIES",
         description: "High-speed ceiling fan",
-        maintenanceRequired: true,
         isActive: true,
       },
     ];
@@ -372,177 +345,61 @@ export class SeedService {
     }
 
     // Ensure dependencies exist
-    await this.seedBuildings(force);
-    await this.seedRoomTypes(force);
-    await this.seedAmenities(force);
+    await this.seedBuildings(false);
+    await this.seedRoomTypes(false);
+    await this.seedAmenities(false);
 
-    // Get amenities by name to get their UUIDs
-    const acAmenity = await this.amenityRepository.findOne({
-      where: { name: "Air Conditioning" },
-    });
-    const wifiAmenity = await this.amenityRepository.findOne({
-      where: { name: "WiFi" },
-    });
-    const tableAmenity = await this.amenityRepository.findOne({
-      where: { name: "Study Table" },
-    });
-    const wardrobeAmenity = await this.amenityRepository.findOne({
-      where: { name: "Wardrobe" },
-    });
-    const fanAmenity = await this.amenityRepository.findOne({
-      where: { name: "Ceiling Fan" },
-    });
+    // Get first building and room type for simplicity
+    const building = await this.buildingRepository.findOne({ where: {} });
+    const roomType = await this.roomTypeRepository.findOne({ where: {} });
 
-    const rooms = [];
-    const roomAmenities = [];
-    const roomLayouts = [];
-
-    // Generate rooms for Main Building
-    for (let floor = 1; floor <= 4; floor++) {
-      for (let roomNum = 1; roomNum <= 12; roomNum++) {
-        const roomNumber = `${floor}${roomNum.toString().padStart(2, "0")}`;
-        const roomId = `ROOM${roomNumber}`;
-
-        // Determine room type based on room number
-        let roomTypeId, capacity, rent;
-        if (roomNum <= 4) {
-          roomTypeId = "RT001"; // Single AC
-          capacity = 1;
-          rent = 8000;
-        } else if (roomNum <= 8) {
-          roomTypeId = "RT002"; // Double AC
-          capacity = 2;
-          rent = 6000;
-        } else {
-          roomTypeId = "RT003"; // Triple Non-AC
-          capacity = 3;
-          rent = 4000;
-        }
-
-        rooms.push({
-          id: roomId,
-          name: `Room ${roomNumber}`,
-          roomNumber: roomNumber,
-          buildingId: "BLD001",
-          roomTypeId: roomTypeId,
-          floor: floor,
-          capacity: capacity,
-          bedCount: capacity,
-          occupancy: 0,
-          rent: rent,
-          status: RoomStatus.ACTIVE,
-          maintenanceStatus: MaintenanceStatus.GOOD,
-          gender: floor <= 2 ? Gender.MALE : Gender.FEMALE,
-          description: `Room ${roomNumber} on floor ${floor}`,
-          notes: `${capacity}-bed room on floor ${floor}`,
-        });
-
-        // Add room layout
-        roomLayouts.push({
-          roomId: roomId,
-          name: `Layout for Room ${roomNumber}`,
-          layoutData: {
-            roomSize: { width: 12, height: 10 },
-            bedPositions:
-              capacity === 1
-                ? [{ x: 2, y: 2 }]
-                : capacity === 2
-                  ? [
-                      { x: 2, y: 2 },
-                      { x: 8, y: 2 },
-                    ]
-                  : [
-                      { x: 2, y: 2 },
-                      { x: 8, y: 2 },
-                      { x: 2, y: 6 },
-                    ],
-          },
-          dimensions: { length: 12, width: 10, height: 9 },
-          isActive: true,
-          createdBy: "seeder",
-        });
-
-        // Add amenities based on room type using actual UUIDs
-        if (roomTypeId === "RT001" || roomTypeId === "RT002") {
-          // AC rooms
-          if (acAmenity)
-            roomAmenities.push({
-              roomId: roomId,
-              amenityId: acAmenity.id,
-              isActive: true,
-            });
-          if (wifiAmenity)
-            roomAmenities.push({
-              roomId: roomId,
-              amenityId: wifiAmenity.id,
-              isActive: true,
-            });
-          if (tableAmenity)
-            roomAmenities.push({
-              roomId: roomId,
-              amenityId: tableAmenity.id,
-              isActive: true,
-            });
-          if (wardrobeAmenity)
-            roomAmenities.push({
-              roomId: roomId,
-              amenityId: wardrobeAmenity.id,
-              isActive: true,
-            });
-        } else {
-          // Non-AC rooms
-          if (wifiAmenity)
-            roomAmenities.push({
-              roomId: roomId,
-              amenityId: wifiAmenity.id,
-              isActive: true,
-            });
-          if (tableAmenity)
-            roomAmenities.push({
-              roomId: roomId,
-              amenityId: tableAmenity.id,
-              isActive: true,
-            });
-          if (wardrobeAmenity)
-            roomAmenities.push({
-              roomId: roomId,
-              amenityId: wardrobeAmenity.id,
-              isActive: true,
-            });
-          if (fanAmenity)
-            roomAmenities.push({
-              roomId: roomId,
-              amenityId: fanAmenity.id,
-              isActive: true,
-            });
-        }
-      }
-    }
+    const rooms = [
+      {
+        name: "Room 101",
+        roomNumber: "101",
+        bedCount: 2,
+        occupancy: 0,
+        gender: "Male",
+        status: "ACTIVE",
+        maintenanceStatus: "Good",
+        description: "Double occupancy room on first floor",
+        buildingId: building?.id,
+        roomTypeId: roomType?.id,
+      },
+      {
+        name: "Room 102",
+        roomNumber: "102",
+        bedCount: 2,
+        occupancy: 1,
+        gender: "Male",
+        status: "ACTIVE",
+        maintenanceStatus: "Good",
+        description: "Double occupancy room on first floor",
+        buildingId: building?.id,
+        roomTypeId: roomType?.id,
+      },
+      {
+        name: "Room 201",
+        roomNumber: "201",
+        bedCount: 1,
+        occupancy: 0,
+        gender: "Female",
+        status: "ACTIVE",
+        maintenanceStatus: "Excellent",
+        description: "Single occupancy room on second floor",
+        buildingId: building?.id,
+        roomTypeId: roomType?.id,
+      },
+    ];
 
     if (force) {
-      // Delete in proper order to handle foreign key constraints
-      await this.roomLayoutRepository.createQueryBuilder().delete().execute();
-      await this.roomAmenityRepository.createQueryBuilder().delete().execute();
       await this.roomRepository.createQueryBuilder().delete().execute();
-      // Don't delete buildings and room types here as they might be needed by other entities
     }
 
     const savedRooms = await this.roomRepository.save(rooms);
-    const savedAmenities = await this.roomAmenityRepository.save(roomAmenities);
-    const savedLayouts = await this.roomLayoutRepository.save(roomLayouts);
+    this.logger.log(`Seeded ${savedRooms.length} rooms`);
 
-    this.logger.log(
-      `Seeded ${savedRooms.length} rooms with amenities and layouts`
-    );
-
-    return {
-      count: savedRooms.length,
-      data: {
-        rooms: savedRooms.length,
-        amenities: savedAmenities.length,
-        layouts: savedLayouts.length,
-      },
-    };
+    return { count: savedRooms.length, data: savedRooms };
   }
 
   async seedStudents(force = false) {
@@ -558,58 +415,28 @@ export class SeedService {
 
     const students = [
       {
-        id: "STU001",
         name: "John Doe",
-        phone: "9876543210",
-        email: "john.doe@email.com",
-        address: "123 Student Street, City",
-        roomId: "ROOM101",
+        phone: "+1234567890",
+        email: "john.doe@example.com",
         enrollmentDate: new Date("2024-01-15"),
-        status: "Active" as any,
-        emergencyContact: "9876543211",
-        guardianName: "Robert Doe",
-        guardianPhone: "9876543211",
-        idProofType: "Aadhar",
-        idProofNumber: "123456789012",
-        dateOfBirth: new Date("2002-05-15"),
-        bloodGroup: "O+",
-        isActive: true,
+        status: StudentStatus.ACTIVE,
+        address: "123 Main Street, City",
       },
       {
-        id: "STU002",
         name: "Jane Smith",
-        phone: "9876543220",
-        email: "jane.smith@email.com",
-        address: "456 Student Avenue, City",
-        roomId: "ROOM301",
-        enrollmentDate: new Date("2024-01-20"),
-        status: "Active" as any,
-        emergencyContact: "9876543221",
-        guardianName: "Mary Smith",
-        guardianPhone: "9876543221",
-        idProofType: "Passport",
-        idProofNumber: "P1234567",
-        dateOfBirth: new Date("2001-08-22"),
-        bloodGroup: "A+",
-        isActive: true,
+        phone: "+1234567891",
+        email: "jane.smith@example.com",
+        enrollmentDate: new Date("2024-02-01"),
+        status: StudentStatus.ACTIVE,
+        address: "456 Oak Avenue, City",
       },
       {
-        id: "STU003",
         name: "Mike Johnson",
-        phone: "9876543230",
-        email: "mike.johnson@email.com",
-        address: "789 Student Road, City",
-        roomId: "ROOM205",
-        enrollmentDate: new Date("2024-02-01"),
-        status: "Active" as any,
-        emergencyContact: "9876543231",
-        guardianName: "David Johnson",
-        guardianPhone: "9876543231",
-        idProofType: "Aadhar",
-        idProofNumber: "123456789013",
-        dateOfBirth: new Date("2003-03-10"),
-        bloodGroup: "B+",
-        isActive: true,
+        phone: "+1234567892",
+        email: "mike.johnson@example.com",
+        enrollmentDate: new Date("2024-02-15"),
+        status: StudentStatus.ACTIVE,
+        address: "789 Pine Road, City",
       },
     ];
 
@@ -633,13 +460,20 @@ export class SeedService {
 
     // Add contacts
     const contacts = [];
-    savedStudents.forEach((student) => {
+    const guardianData = [
+      { name: "Robert Doe", phone: "+1234567800" },
+      { name: "Mary Smith", phone: "+1234567801" },
+      { name: "David Johnson", phone: "+1234567802" },
+    ];
+
+    savedStudents.forEach((student, index) => {
+      const guardian = guardianData[index] || guardianData[0];
       contacts.push(
         {
           studentId: student.id,
           type: ContactType.EMERGENCY,
-          name: student.guardianName,
-          phone: student.guardianPhone,
+          name: guardian.name,
+          phone: guardian.phone,
           relationship: "Guardian",
           isActive: true,
         },
