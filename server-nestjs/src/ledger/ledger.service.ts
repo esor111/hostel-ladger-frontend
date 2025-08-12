@@ -357,9 +357,10 @@ export class LedgerService {
   }
 
   private async getNextEntryNumber(): Promise<number> {
-    const lastEntry = await this.ledgerRepository.findOne({
-      order: { entryNumber: 'DESC' }
-    });
+    const lastEntry = await this.ledgerRepository
+      .createQueryBuilder('ledger')
+      .orderBy('ledger.entryNumber', 'DESC')
+      .getOne();
     return (lastEntry?.entryNumber || 0) + 1;
   }
 

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Database, RefreshCw } from 'lucide-react';
+import { resetMockData } from '@/utils/mockDataLoader.js';
 
 export const MockDataIndicator = () => {
   const [dataCount, setDataCount] = useState(0);
@@ -10,14 +11,9 @@ export const MockDataIndicator = () => {
   useEffect(() => {
     // Check if mock data is loaded
     const checkData = () => {
-      try {
-        const students = JSON.parse(localStorage.getItem('studentsData') || '[]');
-        const checkedOut = JSON.parse(localStorage.getItem('checkedOutWithDues') || '[]');
-        setDataCount(students.length + checkedOut.length);
-      } catch (error) {
-        console.warn('Error checking mock data:', error);
-        setDataCount(0);
-      }
+      const students = JSON.parse(localStorage.getItem('studentsData') || '[]');
+      const checkedOut = JSON.parse(localStorage.getItem('checkedOutWithDues') || '[]');
+      setDataCount(students.length + checkedOut.length);
     };
     
     checkData();
@@ -26,14 +22,8 @@ export const MockDataIndicator = () => {
   }, []);
 
   const handleResetData = () => {
-    try {
-      localStorage.removeItem('studentsData');
-      localStorage.removeItem('checkedOutWithDues');
-      localStorage.removeItem('ledgerData');
-      window.location.reload();
-    } catch (error) {
-      console.error('Error resetting mock data:', error);
-    }
+    resetMockData();
+    window.location.reload();
   };
 
   return (

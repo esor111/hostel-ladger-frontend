@@ -22,7 +22,7 @@ export const MainLayout = ({ children, activeTab }: MainLayoutProps) => {
         // Handle navigation based on tab
         switch (tab) {
           case 'dashboard':
-            navigate('/');
+            navigate('/admin');
             break;
           case 'profile':
             navigate('/hostel');

@@ -12,7 +12,8 @@ import {
   Receipt,
   CreditCard,
   FileText,
-  TrendingUp
+  TrendingUp,
+  Zap
 } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useState } from "react";
@@ -37,7 +38,7 @@ export const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
   ];
 
   const adminMenuItems = [
-    { id: "charging", label: "⚡ Admin Charging", icon: TrendingUp, path: "/admin/charging" },
+    { id: "charging", label: "Admin Charging", icon: Zap, path: "/admin/charging" },
   ];
 
   const ledgerSubItems = [
@@ -114,42 +115,44 @@ export const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
         })}
 
         {/* Enhanced Admin Tools Section */}
-        <div className="border-t border-gray-200 pt-6 mt-6">
-          <div className="mb-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4">Admin Tools</p>
+        {adminMenuItems.length > 0 && (
+          <div className="border-t border-gray-200 pt-6 mt-6">
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4">Admin Tools</p>
+            </div>
+            {adminMenuItems.map((item, index) => {
+              const Icon = item.icon;
+              const adminGradients = [
+                'from-[#07A64F] to-[#07A64F]/80',
+                'from-[#1295D0] to-[#1295D0]/80'
+              ];
+              
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => window.location.href = item.path}
+                  className={`group w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left transition-all duration-300 mb-2 ${
+                    activeTab === item.id
+                      ? "bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-700 border border-purple-200 shadow-md transform scale-105"
+                      : "text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-md hover:scale-102"
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg transition-all duration-300 ${
+                    activeTab === item.id 
+                      ? `bg-gradient-to-br ${adminGradients[index]} text-white shadow-lg` 
+                      : `bg-gray-100 group-hover:bg-gradient-to-br group-hover:${adminGradients[index]} group-hover:text-white`
+                  }`}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <span className="font-semibold">{item.label}</span>
+                  {activeTab === item.id && (
+                    <div className="ml-auto w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                  )}
+                </button>
+              );
+            })}
           </div>
-          {adminMenuItems.map((item, index) => {
-            const Icon = item.icon;
-            const adminGradients = [
-              'from-[#07A64F] to-[#07A64F]/80',
-              'from-[#1295D0] to-[#1295D0]/80'
-            ];
-            
-            return (
-              <button
-                key={item.id}
-                onClick={() => window.location.href = item.path}
-                className={`group w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left transition-all duration-300 mb-2 ${
-                  activeTab === item.id
-                    ? "bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-700 border border-purple-200 shadow-md transform scale-105"
-                    : "text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-md hover:scale-102"
-                }`}
-              >
-                <div className={`p-2 rounded-lg transition-all duration-300 ${
-                  activeTab === item.id 
-                    ? `bg-gradient-to-br ${adminGradients[index]} text-white shadow-lg` 
-                    : `bg-gray-100 group-hover:bg-gradient-to-br group-hover:${adminGradients[index]} group-hover:text-white`
-                }`}>
-                  <Icon className="h-4 w-4" />
-                </div>
-                <span className="font-semibold">{item.label}</span>
-                {activeTab === item.id && (
-                  <div className="ml-auto w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                )}
-              </button>
-            );
-          })}
-        </div>
+        )}
 
         {/* Enhanced Kaha Ledger Section */}
         <div className="border-t border-gray-200 pt-6 mt-6">

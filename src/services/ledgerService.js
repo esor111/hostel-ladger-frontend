@@ -261,41 +261,36 @@ export const ledgerService = {
   async getLedgerSummary() {
     try {
       console.log("📊 Fetching ledger dashboard data from API...");
-      const response = await fetch(`${API_BASE_URL}/ledgers/dashboard`);
+      const response = await fetch(`${API_BASE_URL}/ledgers/stats`);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log("✅ Ledger dashboard data fetched");
+      console.log("✅ Ledger stats data fetched");
 
-      const dashboardData = data.data || data;
+      const stats = data.stats || data;
       
-      // Flatten the structure for frontend compatibility
+      // Map backend stats to frontend dashboard format
       return {
-        // Summary data
-        totalStudents: dashboardData.summary?.totalStudents || 0,
-        totalCollected: dashboardData.summary?.totalCollected || 0,
-        outstandingDues: dashboardData.summary?.outstandingDues || 0,
-        thisMonthCollection: dashboardData.summary?.thisMonthCollection || 0,
-        advanceBalances: dashboardData.summary?.advanceBalances || 0,
-        collectionRate: dashboardData.summary?.collectionRate || 0,
+        // Summary data mapped from backend stats
+        totalStudents: stats.activeStudents || 0,
+        totalCollected: stats.totalCredits || 0,
+        outstandingDues: stats.netBalance || 0,
+        thisMonthCollection: stats.totalCredits || 0,
+        advanceBalances: 0, // Not available in current stats
+        collectionRate: stats.activeStudents > 0 ? ((stats.totalCredits / (stats.totalDebits + stats.totalCredits)) * 100).toFixed(1) : 0,
         
-        // Detailed data
-        highestDueStudents: dashboardData.highestDueStudents?.map(student => ({
-          name: student.name,
-          room: student.roomNumber,
-          amount: student.outstandingAmount,
-          monthsOverdue: student.monthsOverdue
-        })) || [],
+        // Mock detailed data since not available in stats endpoint
+        highestDueStudents: [],
         
-        recentActivities: dashboardData.recentActivities?.map(activity => ({
-          student: activity.studentName,
-          type: activity.type,
-          amount: parseFloat(activity.amount) || 0,
-          timeAgo: activity.timeAgo
-        })) || []
+        recentActivities: Object.entries(stats.entryTypeBreakdown || {}).map(([type, breakdown]) => ({
+          student: `${breakdown.count} ${type} entries`,
+          type: type,
+          amount: breakdown.totalDebits - breakdown.totalCredits,
+          timeAgo: 'Recent'
+        }))
       };
     } catch (error) {
       console.error("❌ Error fetching ledger dashboard:", error);

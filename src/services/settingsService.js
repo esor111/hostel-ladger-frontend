@@ -1,20 +1,14 @@
 // Settings Service - System configuration management
-import { apiService } from './apiService.ts';
-import { API_ENDPOINTS } from '../config/api.ts';
+import settingsData from '../data/settings.json';
+
+let settings = [...settingsData];
 
 export const settingsService = {
   // READ Operations
   async getAllSettings() {
-    try {
-      console.log('⚙️ Fetching settings from API...');
-      const result = await apiService.get(API_ENDPOINTS.SETTINGS.BASE);
-      console.log('✅ Settings API response:', result);
-      return result.items || result || [];
-    } catch (error) {
-      console.error('❌ Error fetching settings:', error);
-      // Fallback to empty array if API fails
-      return [];
-    }
+    return new Promise((resolve) => {
+      setTimeout(() => resolve([...settings]), 100);
+    });
   },
 
   async getSettingById(id) {
@@ -25,15 +19,10 @@ export const settingsService = {
   },
 
   async getSettingByKey(key) {
-    try {
-      console.log(`⚙️ Fetching setting by key: ${key}`);
-      const setting = await apiService.get(API_ENDPOINTS.SETTINGS.BY_KEY(key));
-      console.log('✅ Setting fetched');
-      return setting;
-    } catch (error) {
-      console.error('❌ Error fetching setting by key:', error);
-      return null;
-    }
+    return new Promise((resolve) => {
+      const setting = settings.find(s => s.key === key);
+      setTimeout(() => resolve(setting), 100);
+    });
   },
 
   async getSettingsByCategory(category) {

@@ -34,6 +34,7 @@ import { Report } from '../reports/entities/report.entity';
 import { HostelProfile } from '../hostel/entities/hostel-profile.entity';
 import { MaintenanceRequest } from '../maintenance/entities/maintenance-request.entity';
 import { Notification } from '../notifications/entities/notification.entity';
+import { AdminCharge } from '../admin-charges/entities/admin-charge.entity';
 
 // Load environment variables
 config();
@@ -82,6 +83,9 @@ export const dataSourceOptions: DataSourceOptions = {
     HostelProfile,
     MaintenanceRequest,
     Notification,
+    
+    // Admin charges entities
+    AdminCharge,
   ],
   migrations: [path.join(__dirname, 'migrations', '*{.ts,.js}')],
   synchronize: false, // Always false in production

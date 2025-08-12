@@ -33,6 +33,7 @@ import { DiscountType } from '../../discounts/entities/discount-type.entity';
 import { BookingRequest } from '../../bookings/entities/booking-request.entity';
 
 import { Report } from '../../reports/entities/report.entity';
+import { AdminCharge } from '../../admin-charges/entities/admin-charge.entity';
 
 @Module({
   imports: [
@@ -69,6 +70,9 @@ import { Report } from '../../reports/entities/report.entity';
       
       // Report entities
       Report,
+      
+      // Admin charges entities
+      AdminCharge,
     ]),
   ],
   controllers: [SeedController],

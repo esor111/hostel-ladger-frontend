@@ -22,10 +22,9 @@ async function apiRequest(endpoint, options = {}) {
     }
 
     const data = await response.json();
-    // Handle different response formats
-    if (data.data !== undefined) return data.data;
-    else if (data.result !== undefined) return data.result;
-    else if (data.stats !== undefined) return data.stats;
+    // Handle NestJS API response format
+    if (data.success && data.data !== undefined) return data.data;
+    else if (data.data !== undefined) return data.data;
     else return data;
   } catch (error) {
     console.error("Admin Charging API Request Error:", error);
@@ -34,234 +33,246 @@ async function apiRequest(endpoint, options = {}) {
 }
 
 export const adminChargingService = {
-  // Charge types will be loaded from API
-  chargeTypes: [],
+  // Predefined charge types and categories
+  chargeTypes: [
+    { value: 'one-time', label: 'One-time Charge' },
+    { value: 'monthly', label: 'Monthly Charge' },
+    { value: 'daily', label: 'Daily Charge' }
+  ],
 
-  // Load charge types from API
-  async loadChargeTypes() {
+  chargeCategories: [
+    { value: 'Penalty', label: 'Penalty' },
+    { value: 'Maintenance', label: 'Maintenance' },
+    { value: 'Service', label: 'Service' },
+    { value: 'Guest', label: 'Guest' },
+    { value: 'Miscellaneous', label: 'Miscellaneous' },
+    { value: 'Late Fee', label: 'Late Fee' },
+    { value: 'Damage', label: 'Damage' },
+    { value: 'Administrative', label: 'Administrative' }
+  ],
+
+  // Get all admin charges with optional filters
+  async getAllCharges(filters = {}) {
     try {
-      console.log('📋 Loading charge types from API...');
-      const chargeTypes = await apiRequest('/admin/charge-types');
+      console.log('📋 Fetching admin charges from API...');
+      const queryParams = new URLSearchParams();
       
-      // Transform to frontend format
-      this.chargeTypes = chargeTypes.map(ct => ({
-        value: ct.code,
-        label: ct.label,
-        description: ct.description,
-        category: ct.category,
-        defaultAmount: ct.defaultAmount,
-        maxAmount: ct.maxAmount,
-        requiresApproval: ct.requiresApproval
-      }));
+      if (filters.studentId) queryParams.append('studentId', filters.studentId);
+      if (filters.status) queryParams.append('status', filters.status);
+      if (filters.chargeType) queryParams.append('chargeType', filters.chargeType);
+      if (filters.category) queryParams.append('category', filters.category);
+      if (filters.page) queryParams.append('page', filters.page);
+      if (filters.limit) queryParams.append('limit', filters.limit);
+
+      const endpoint = `/admin-charges${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      const result = await apiRequest(endpoint);
       
-      console.log(`✅ Loaded ${this.chargeTypes.length} charge types`);
-      return this.chargeTypes;
-    } catch (error) {
-      console.error('❌ Error loading charge types:', error);
-      // Fallback to static types if API fails
-      this.chargeTypes = [
-        { value: 'late_fee_overdue', label: 'Late Fee - Payment Overdue' },
-        { value: 'late_fee_partial', label: 'Late Fee - Partial Payment' },
-        { value: 'penalty_rule', label: 'Penalty - Rule Violation' },
-        { value: 'penalty_noise', label: 'Penalty - Noise Complaint' },
-        { value: 'penalty_damage', label: 'Penalty - Damage Charge' },
-        { value: 'admin_fee', label: 'Administrative Fee' },
-        { value: 'processing_fee', label: 'Processing Fee' },
-        { value: 'service_charge', label: 'Service Charge' },
-        { value: 'custom', label: 'Custom - Enter Manually' }
-      ];
-      return this.chargeTypes;
-    }
-  },
-
-  // Add charge to student ledger
-  async addChargeToStudent(studentId, chargeData, adminId = 'Admin') {
-    try {
-      console.log('💰 Adding charge to student via API...');
-      
-      // Find charge type ID if not custom
-      let chargeTypeId = null;
-      if (chargeData.type !== 'custom') {
-        const chargeType = this.chargeTypes.find(ct => ct.value === chargeData.type);
-        if (chargeType) {
-          // We need to get the actual ID from the API
-          const allChargeTypes = await apiRequest('/admin/charge-types');
-          const apiChargeType = allChargeTypes.find(ct => ct.code === chargeData.type);
-          chargeTypeId = apiChargeType?.id;
-        }
-      }
-
-      // Get charge description
-      let description = chargeData.description;
-      if (chargeData.type !== 'custom') {
-        const chargeType = this.chargeTypes.find(ct => ct.value === chargeData.type);
-        description = chargeType ? chargeType.label : chargeData.description;
-      }
-
-      // Prepare API request data
-      const requestData = {
-        studentId: studentId,
-        chargeTypeId: chargeTypeId,
-        amount: parseFloat(chargeData.amount),
-        description: description,
-        customDescription: chargeData.type === 'custom' ? chargeData.description : null,
-        adminNotes: chargeData.notes || '',
-        appliedBy: adminId,
-        sendNotification: chargeData.sendNotification !== false
-      };
-
-      const result = await apiRequest('/admin/charges', {
-        method: 'POST',
-        body: JSON.stringify(requestData)
-      });
-
-      console.log(`✅ Charge added: NPR ${chargeData.amount} (${description}) to student ${studentId}`);
-      
-      return {
-        success: true,
-        charge: result,
-        student: { name: result.studentName },
-        chargeAmount: parseFloat(chargeData.amount),
-        description: description
-      };
-
-    } catch (error) {
-      console.error('❌ Error adding charge to student:', error);
-      return {
-        success: false,
-        error: error.message
-      };
-    }
-  },
-
-  // Add charges to multiple students (bulk operation)
-  async addBulkCharges(studentIds, chargeData, adminId = 'Admin') {
-    try {
-      console.log('💰 Adding bulk charges via API...');
-      
-      // Find charge type ID if not custom
-      let chargeTypeId = null;
-      if (chargeData.type !== 'custom') {
-        const chargeType = this.chargeTypes.find(ct => ct.value === chargeData.type);
-        if (chargeType) {
-          const allChargeTypes = await apiRequest('/admin/charge-types');
-          const apiChargeType = allChargeTypes.find(ct => ct.code === chargeData.type);
-          chargeTypeId = apiChargeType?.id;
-        }
-      }
-
-      // Get charge description
-      let description = chargeData.description;
-      if (chargeData.type !== 'custom') {
-        const chargeType = this.chargeTypes.find(ct => ct.value === chargeData.type);
-        description = chargeType ? chargeType.label : chargeData.description;
-      }
-
-      // Prepare API request data
-      const requestData = {
-        studentIds: studentIds,
-        chargeTypeId: chargeTypeId,
-        amount: parseFloat(chargeData.amount),
-        description: description,
-        customDescription: chargeData.type === 'custom' ? chargeData.description : null,
-        adminNotes: chargeData.notes || '',
-        appliedBy: adminId,
-        sendNotification: chargeData.sendNotification !== false
-      };
-
-      const result = await apiRequest('/admin/charges/bulk', {
-        method: 'POST',
-        body: JSON.stringify(requestData)
-      });
-
-      console.log(`✅ Bulk charges applied: ${result.successful.length} successful, ${result.failed.length} failed`);
-      
+      console.log(`✅ Fetched ${result.length || 0} admin charges`);
       return result;
-
     } catch (error) {
-      console.error('❌ Error in bulk charging:', error);
+      console.error('❌ Error fetching admin charges:', error);
       throw error;
     }
   },
 
-
-
-  // Get students with overdue payments
-  async getOverdueStudents() {
+  // Get admin charges statistics
+  async getChargeStats() {
     try {
-      console.log('📋 Fetching overdue students from API...');
-      const overdueStudents = await apiRequest('/admin/charges/overdue-students');
-      
-      console.log(`✅ Found ${overdueStudents.length} overdue students`);
-      return overdueStudents;
-
+      console.log('📊 Fetching admin charge statistics...');
+      const stats = await apiRequest('/admin-charges/stats');
+      console.log('✅ Admin charge statistics fetched');
+      return stats;
     } catch (error) {
-      console.error('❌ Error getting overdue students:', error);
-      return [];
+      console.error('❌ Error fetching charge statistics:', error);
+      return {
+        totalCharges: 0,
+        pendingCharges: 0,
+        appliedCharges: 0,
+        cancelledCharges: 0,
+        totalPendingAmount: 0,
+        totalAppliedAmount: 0
+      };
     }
   },
 
-  // Get charge history for a student
-  async getStudentChargeHistory(studentId) {
+  // Create a new admin charge
+  async createCharge(chargeData) {
     try {
-      console.log(`📋 Fetching charge history for student ${studentId}...`);
-      const history = await apiRequest(`/admin/charges/history/${studentId}`);
-      
-      console.log(`✅ Found ${history.items?.length || 0} charge records`);
-      return history.items || [];
-
-    } catch (error) {
-      console.error('❌ Error getting charge history:', error);
-      return [];
-    }
-  },
-
-  // Remove/reverse a charge
-  async reverseCharge(chargeId, reason, adminId = 'Admin') {
-    try {
-      console.log(`🔄 Reversing charge ${chargeId}...`);
+      console.log('💰 Creating admin charge via API...');
       
       const requestData = {
-        reversedBy: adminId,
-        reversalReason: reason
+        studentId: chargeData.studentId,
+        title: chargeData.title,
+        description: chargeData.description || '',
+        amount: parseFloat(chargeData.amount),
+        chargeType: chargeData.chargeType || 'one-time',
+        dueDate: chargeData.dueDate || null,
+        category: chargeData.category || 'Miscellaneous',
+        isRecurring: chargeData.isRecurring || false,
+        recurringMonths: chargeData.recurringMonths || null,
+        adminNotes: chargeData.adminNotes || '',
+        createdBy: chargeData.createdBy || 'Admin'
       };
 
-      const result = await apiRequest(`/admin/charges/${chargeId}`, {
-        method: 'DELETE',
+      const result = await apiRequest('/admin-charges', {
+        method: 'POST',
         body: JSON.stringify(requestData)
       });
 
-      console.log(`✅ Charge ${chargeId} reversed successfully`);
+      console.log(`✅ Admin charge created: ${chargeData.title} - $${chargeData.amount}`);
       return result;
 
     } catch (error) {
-      console.error('❌ Error reversing charge:', error);
-      return {
-        success: false,
-        error: error.message
-      };
+      console.error('❌ Error creating admin charge:', error);
+      throw error;
     }
   },
 
-  // Get today's charge summary
-  async getTodayChargeSummary() {
+  // Update an existing admin charge
+  async updateCharge(chargeId, updateData) {
     try {
-      console.log('📊 Fetching today\'s charge summary from API...');
-      const summary = await apiRequest('/admin/charges/summary/today');
+      console.log(`🔄 Updating admin charge ${chargeId}...`);
       
-      console.log('✅ Today\'s charge summary fetched');
-      return summary;
+      const result = await apiRequest(`/admin-charges/${chargeId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updateData)
+      });
+
+      console.log(`✅ Admin charge ${chargeId} updated successfully`);
+      return result;
 
     } catch (error) {
-      console.error('❌ Error getting charge summary:', error);
-      return {
-        totalCharges: 0,
-        totalAmount: 0,
-        studentsCharged: 0,
-        averageCharge: 0,
-        activeCharges: 0,
-        reversedCharges: 0
-      };
+      console.error('❌ Error updating admin charge:', error);
+      throw error;
     }
+  },
+
+  // Get a specific admin charge
+  async getCharge(chargeId) {
+    try {
+      console.log(`� Fdetching admin charge ${chargeId}...`);
+      const charge = await apiRequest(`/admin-charges/${chargeId}`);
+      console.log(`✅ Admin charge ${chargeId} fetched`);
+      return charge;
+    } catch (error) {
+      console.error('❌ Error fetching admin charge:', error);
+      throw error;
+    }
+  },
+
+  // Get charges for a specific student
+  async getStudentCharges(studentId) {
+    try {
+      console.log(`📋 Fetching charges for student ${studentId}...`);
+      const charges = await apiRequest(`/admin-charges/student/${studentId}`);
+      console.log(`✅ Found ${charges.length || 0} charges for student`);
+      return charges;
+    } catch (error) {
+      console.error('❌ Error fetching student charges:', error);
+      return [];
+    }
+  },
+
+  // Apply a pending charge (creates ledger entry)
+  async applyCharge(chargeId) {
+    try {
+      console.log(`⚡ Applying admin charge ${chargeId}...`);
+      const result = await apiRequest(`/admin-charges/${chargeId}/apply`, {
+        method: 'POST'
+      });
+      console.log(`✅ Admin charge ${chargeId} applied successfully`);
+      return result;
+    } catch (error) {
+      console.error('❌ Error applying admin charge:', error);
+      throw error;
+    }
+  },
+
+  // Cancel a pending charge
+  async cancelCharge(chargeId) {
+    try {
+      console.log(`❌ Cancelling admin charge ${chargeId}...`);
+      const result = await apiRequest(`/admin-charges/${chargeId}/cancel`, {
+        method: 'POST'
+      });
+      console.log(`✅ Admin charge ${chargeId} cancelled successfully`);
+      return result;
+    } catch (error) {
+      console.error('❌ Error cancelling admin charge:', error);
+      throw error;
+    }
+  },
+
+  // Delete an admin charge
+  async deleteCharge(chargeId) {
+    try {
+      console.log(`�️ eDeleting admin charge ${chargeId}...`);
+      const result = await apiRequest(`/admin-charges/${chargeId}`, {
+        method: 'DELETE'
+      });
+      console.log(`✅ Admin charge ${chargeId} deleted successfully`);
+      return result;
+    } catch (error) {
+      console.error('❌ Error deleting admin charge:', error);
+      throw error;
+    }
+  },
+
+  // Bulk create charges for multiple students
+  async createBulkCharges(studentIds, chargeData) {
+    try {
+      console.log('� Creating  bulk admin charges...');
+      const results = [];
+      
+      for (const studentId of studentIds) {
+        try {
+          const result = await this.createCharge({
+            ...chargeData,
+            studentId: studentId
+          });
+          results.push({ studentId, success: true, charge: result });
+        } catch (error) {
+          results.push({ studentId, success: false, error: error.message });
+        }
+      }
+      
+      const successful = results.filter(r => r.success);
+      const failed = results.filter(r => !r.success);
+      
+      console.log(`✅ Bulk charges created: ${successful.length} successful, ${failed.length} failed`);
+      return { successful, failed, results };
+    } catch (error) {
+      console.error('❌ Error creating bulk charges:', error);
+      throw error;
+    }
+  },
+
+  // Get formatted charge status
+  getChargeStatusLabel(status) {
+    const statusLabels = {
+      'pending': 'Pending',
+      'applied': 'Applied',
+      'cancelled': 'Cancelled'
+    };
+    return statusLabels[status] || status;
+  },
+
+  // Get formatted charge type
+  getChargeTypeLabel(chargeType) {
+    const typeLabels = {
+      'one-time': 'One-time',
+      'monthly': 'Monthly',
+      'daily': 'Daily'
+    };
+    return typeLabels[chargeType] || chargeType;
+  },
+
+  // Format amount for display
+  formatAmount(amount) {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 2
+    }).format(amount);
   }
 };

@@ -10,6 +10,7 @@ import { Discount } from '../../discounts/entities/discount.entity';
 import { StudentContact } from './student-contact.entity';
 import { StudentAcademicInfo } from './student-academic-info.entity';
 import { StudentFinancialInfo } from './student-financial-info.entity';
+import { AdminCharge } from '../../admin-charges/entities/admin-charge.entity';
 
 export enum StudentStatus {
   ACTIVE = 'Active',
@@ -85,4 +86,7 @@ export class Student extends BaseEntity {
 
   @OneToMany(() => RoomOccupant, occupant => occupant.student)
   roomOccupancy: RoomOccupant[];
+
+  @OneToMany(() => AdminCharge, adminCharge => adminCharge.student)
+  adminCharges: AdminCharge[];
 }

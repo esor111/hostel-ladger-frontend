@@ -17,6 +17,7 @@ import { MaintenanceModule } from './maintenance/maintenance.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { SeedModule } from './database/seeds/seed.module';
+import { AdminChargesModule } from './admin-charges/admin-charges.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { SeedModule } from './database/seeds/seed.module';
     NotificationsModule,
     AnalyticsModule,
     SeedModule,
+    AdminChargesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -20,11 +20,6 @@ export const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
       description: "Profiles & Fee Setup"
     },
     {
-      id: "invoices",
-      label: "🧾 Invoice Management",
-      description: "Generate & Track Bills"
-    },
-    {
       id: "payments",
       label: "💰 Payment Recording",
       description: "Log & Apply Payments"
@@ -35,19 +30,24 @@ export const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
       description: "Individual Ledger View"
     },
     {
-      id: "ledgers",
-      label: "📊 Ledger Management",
-      description: "All Entries & Analytics"
-    },
-    {
       id: "billing",
       label: "⚡ Automated Billing",
-      description: "Prorated & Monthly Billing"
+      description: "Monthly & Prorated Billing"
     },
     {
       id: "discounts",
       label: "🏷️ Discount Management",
       description: "Manage Discounts & Offers"
+    },
+    {
+      id: "admin-charging",
+      label: "⚡ Admin Charging",
+      description: "Manual Charge Management"
+    },
+    {
+      id: "checkout",
+      label: "🚪 Student Checkout",
+      description: "Complete Checkout Process"
     }
   ];
 

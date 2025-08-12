@@ -23,6 +23,8 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useAppContext } from "@/contexts/AppContext";
 import { useNavigation } from "@/hooks/useNavigation";
 import { KahaLogo } from "@/components/ui/KahaLogo";
+import { ledgerService } from "@/services/ledgerService";
+import { studentService } from "@/services/studentService";
 
 export const Dashboard = () => {
   const { } = useLanguage();
@@ -85,6 +87,11 @@ export const Dashboard = () => {
     .sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime())
     .slice(0, 4);
 
+  // Get students who are checked out but still have dues
+  const checkedOutStudentsWithDues = state.students
+    .filter(s => s.isCheckedOut && (s.totalDue - s.totalPaid) > 0)
+    .sort((a, b) => new Date(b.checkoutDate).getTime() - new Date(a.checkoutDate).getTime());
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Approved':
@@ -95,6 +102,30 @@ export const Dashboard = () => {
         return 'bg-yellow-100 text-yellow-700';
       default:
         return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const handleBookPaymentForCheckedOutStudent = async (studentId, amount) => {
+    try {
+      // Book payment with "Paid post-checkout" remark
+      const payment = await ledgerService.bookCheckoutPayment(studentId, amount, "Paid post-checkout");
+      
+      // Update student's total paid
+      const student = await studentService.getStudentById(studentId);
+      if (student) {
+        const updatedStudent = await studentService.updateStudent(studentId, {
+          totalPaid: student.totalPaid + amount,
+          lastPaymentDate: new Date().toISOString().split('T')[0]
+        });
+        
+        // Refresh the dashboard data
+        // In a real implementation, this would update the context state
+        console.log("Payment booked for checked out student:", payment);
+        alert(`Payment of NPR ${amount} successfully booked for student ${updatedStudent.name}`);
+      }
+    } catch (error) {
+      console.error("Error booking payment for checked out student:", error);
+      alert("Error booking payment. Please try again.");
     }
   };
 
@@ -122,7 +153,7 @@ export const Dashboard = () => {
                 <div className="flex items-center gap-4 mt-3">
                   <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
                     <div className="w-2 h-2 bg-green-300 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium">System Online</span>
+                    <span className="text-sm font-medium">Analytics Ready</span>
                   </div>
                   <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
                     <Activity className="h-4 w-4" />
@@ -467,7 +498,7 @@ export const Dashboard = () => {
                 <span className="font-medium text-green-600">Excellent</span>
               </div>
               <Progress value={98} className="h-2" />
-              <p className="text-xs text-gray-600">All systems operational</p>
+              <p className="text-xs text-gray-600">Analytics tracking active</p>
             </div>
           </CardContent>
         </Card>

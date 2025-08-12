@@ -10,7 +10,8 @@ export enum LedgerEntryType {
   REFUND = 'Refund',
   PENALTY = 'Penalty',
   CREDIT_NOTE = 'Credit Note',
-  DEBIT_NOTE = 'Debit Note'
+  DEBIT_NOTE = 'Debit Note',
+  ADMIN_CHARGE = 'Admin Charge'
 }
 
 export enum BalanceType {

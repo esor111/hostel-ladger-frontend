@@ -1,7 +1,8 @@
 import React, { memo, useMemo, useCallback, useRef, useEffect } from 'react';
+import { performanceManager } from '@/utils/performance.js';
 
 // Higher-order component for performance optimization
-export const withOptimization = (WrappedComponent: React.ComponentType<any>, options: any = {}) => {
+export const withOptimization = (WrappedComponent, options = {}) => {
   const {
     memoize = true,
     virtualizeThreshold = 100,
@@ -9,7 +10,7 @@ export const withOptimization = (WrappedComponent: React.ComponentType<any>, opt
     preloadData = null
   } = options;
 
-  const OptimizedComponent = memo((props: any) => {
+  const OptimizedComponent = memo((props) => {
     const componentRef = useRef(null);
     const renderCountRef = useRef(0);
     const lastPropsRef = useRef(props);
@@ -30,10 +31,7 @@ export const withOptimization = (WrappedComponent: React.ComponentType<any>, opt
     // Preload data if specified
     useEffect(() => {
       if (preloadData && typeof preloadData === 'function') {
-        // Simple prefetch implementation
-        preloadData().catch((error: Error) => {
-          console.warn('Preload failed:', error);
-        });
+        performanceManager.prefetch(`${WrappedComponent.name}-preload`, preloadData, 0.8);
       }
     }, []);
 
@@ -64,15 +62,7 @@ export const withOptimization = (WrappedComponent: React.ComponentType<any>, opt
 };
 
 // Virtual scrolling component for large lists
-interface VirtualizedListProps {
-  items: any[];
-  renderItem: (item: any, index: number) => React.ReactNode;
-  itemHeight?: number;
-  containerHeight?: number;
-  overscan?: number;
-}
-
-export const VirtualizedList = memo<VirtualizedListProps>(({ 
+export const VirtualizedList = memo(({ 
   items, 
   renderItem, 
   itemHeight = 60, 
@@ -80,7 +70,7 @@ export const VirtualizedList = memo<VirtualizedListProps>(({
   overscan = 5 
 }) => {
   const [scrollTop, setScrollTop] = React.useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef(null);
 
   const visibleRange = useMemo(() => {
     const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
@@ -95,8 +85,8 @@ export const VirtualizedList = memo<VirtualizedListProps>(({
     return items.slice(visibleRange.startIndex, visibleRange.endIndex + 1);
   }, [items, visibleRange]);
 
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    setScrollTop(e.currentTarget.scrollTop);
+  const handleScroll = useCallback((e) => {
+    setScrollTop(e.target.scrollTop);
   }, []);
 
   const totalHeight = items.length * itemHeight;
@@ -125,14 +115,7 @@ export const VirtualizedList = memo<VirtualizedListProps>(({
 });
 
 // Lazy loading component with intersection observer
-interface LazyComponentProps {
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
-  threshold?: number;
-  rootMargin?: string;
-}
-
-export const LazyComponent = memo<LazyComponentProps>(({ 
+export const LazyComponent = memo(({ 
   children, 
   fallback = <div>Loading...</div>,
   threshold = 0.1,
@@ -140,7 +123,7 @@ export const LazyComponent = memo<LazyComponentProps>(({
 }) => {
   const [isVisible, setIsVisible] = React.useState(false);
   const [hasLoaded, setHasLoaded] = React.useState(false);
-  const elementRef = useRef<HTMLDivElement>(null);
+  const elementRef = useRef(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -168,18 +151,8 @@ export const LazyComponent = memo<LazyComponentProps>(({
   );
 });
 
-// Optimized image component with lazy loading
-interface OptimizedImageProps {
-  src: string;
-  alt: string;
-  width?: number;
-  height?: number;
-  className?: string;
-  lazy?: boolean;
-  quality?: number;
-}
-
-export const OptimizedImage = memo<OptimizedImageProps>(({ 
+// Optimized image component with lazy loading and WebP support
+export const OptimizedImage = memo(({ 
   src, 
   alt, 
   width, 
@@ -191,7 +164,7 @@ export const OptimizedImage = memo<OptimizedImageProps>(({
   const [imageSrc, setImageSrc] = React.useState(lazy ? '' : src);
   const [isLoaded, setIsLoaded] = React.useState(false);
   const [hasError, setHasError] = React.useState(false);
-  const imgRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef(null);
 
   // Generate optimized image URL
   const optimizedSrc = useMemo(() => {
@@ -286,14 +259,9 @@ export const OptimizedImage = memo<OptimizedImageProps>(({
 });
 
 // Performance monitoring component
-interface PerformanceMonitorProps {
-  children: React.ReactNode;
-  componentName: string;
-}
-
-export const PerformanceMonitor = memo<PerformanceMonitorProps>(({ children, componentName }) => {
+export const PerformanceMonitor = memo(({ children, componentName }) => {
   const renderStartTime = useRef(performance.now());
-  const mountTime = useRef<number | null>(null);
+  const mountTime = useRef(null);
 
   useEffect(() => {
     mountTime.current = performance.now();
@@ -310,15 +278,15 @@ export const PerformanceMonitor = memo<PerformanceMonitorProps>(({ children, com
     };
   }, [componentName]);
 
-  return <>{children}</>;
+  return children;
 });
 
 // Batch update hook for multiple state updates
 export const useBatchedUpdates = () => {
-  const batchRef = useRef<(() => void)[]>([]);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const batchRef = useRef([]);
+  const timeoutRef = useRef(null);
 
-  const batchUpdate = useCallback((updateFn: () => void) => {
+  const batchUpdate = useCallback((updateFn) => {
     batchRef.current.push(updateFn);
     
     if (timeoutRef.current) {
@@ -326,9 +294,10 @@ export const useBatchedUpdates = () => {
     }
     
     timeoutRef.current = setTimeout(() => {
-      // Use React's batching
-      batchRef.current.forEach(fn => fn());
-      batchRef.current = [];
+      React.unstable_batchedUpdates(() => {
+        batchRef.current.forEach(fn => fn());
+        batchRef.current = [];
+      });
     }, 0);
   }, []);
 

@@ -62,6 +62,7 @@ import {
 } from "../../bookings/entities/booking-request.entity";
 
 import { Report } from "../../reports/entities/report.entity";
+import { AdminCharge, AdminChargeType, AdminChargeStatus } from "../../admin-charges/entities/admin-charge.entity";
 
 @Injectable()
 export class SeedService {
@@ -118,7 +119,11 @@ export class SeedService {
 
     // Report repository
     @InjectRepository(Report)
-    private reportRepository: Repository<Report>
+    private reportRepository: Repository<Report>,
+
+    // Admin charges repository
+    @InjectRepository(AdminCharge)
+    private adminChargeRepository: Repository<AdminCharge>
   ) {}
 
   async checkSeedStatus() {
@@ -139,6 +144,7 @@ export class SeedService {
       payments: await this.paymentRepository.count(),
       paymentAllocations: await this.paymentAllocationRepository.count(),
       ledgerEntries: await this.ledgerRepository.count(),
+      adminCharges: await this.adminChargeRepository.count(),
       bookings: await this.bookingRepository.count(),
       reports: await this.reportRepository.count(),
       lastSeeded: new Date().toISOString(),
@@ -184,10 +190,13 @@ export class SeedService {
         // 7. Discounts depend on students and discount types
         discounts: await this.seedDiscounts(false),
 
-        // 8. Ledger entries depend on all financial entities
+        // 8. Admin charges depend on students
+        adminCharges: await this.seedAdminCharges(false),
+
+        // 9. Ledger entries depend on all financial entities
         ledgerEntries: await this.seedLedgerEntries(false),
 
-        // 9. Bookings are independent
+        // 10. Bookings are independent
         bookings: await this.seedBookings(false),
       };
 
@@ -1460,6 +1469,112 @@ export class SeedService {
     return { count: savedBookings.length, data: savedBookings };
   }
 
+  async seedAdminCharges(force = false) {
+    this.logger.log("Seeding admin charges...");
+
+    if (!force && (await this.adminChargeRepository.count()) > 0) {
+      return {
+        message: "Admin charges already exist, skipping seeding",
+        count: await this.adminChargeRepository.count(),
+      };
+    }
+
+    // Get some students to create charges for
+    const students = await this.studentRepository.find({ take: 5 });
+    
+    if (students.length === 0) {
+      this.logger.warn("No students found, cannot seed admin charges");
+      return { count: 0, data: [] };
+    }
+
+    const adminCharges = [];
+    
+    // Create charges based on available students
+    if (students.length > 0) {
+      adminCharges.push({
+        studentId: students[0].id,
+        title: "Late Payment Penalty",
+        description: "Penalty for late payment of monthly fees",
+        amount: 500.00,
+        chargeType: AdminChargeType.ONE_TIME,
+        status: AdminChargeStatus.PENDING,
+        dueDate: new Date('2025-02-15'),
+        category: "Penalty",
+        createdBy: "admin",
+        adminNotes: "Applied due to payment delay of 15 days"
+      });
+    }
+    
+    if (students.length > 1) {
+      adminCharges.push({
+        studentId: students[1].id,
+        title: "Room Damage Charge",
+        description: "Charge for damaged window in room",
+        amount: 2500.00,
+        chargeType: AdminChargeType.ONE_TIME,
+        status: AdminChargeStatus.APPLIED,
+        appliedDate: new Date('2025-01-10'),
+        category: "Maintenance",
+        createdBy: "admin",
+        adminNotes: "Window replacement cost"
+      });
+    }
+    
+    if (students.length > 2) {
+      adminCharges.push({
+        studentId: students[2].id,
+        title: "Extra Laundry Service",
+        description: "Additional laundry service charges",
+        amount: 300.00,
+        chargeType: AdminChargeType.MONTHLY,
+        status: AdminChargeStatus.PENDING,
+        isRecurring: true,
+        recurringMonths: 6,
+        category: "Service",
+        createdBy: "admin",
+        adminNotes: "Premium laundry service for 6 months"
+      });
+    }
+    
+    // Add more charges using the first student if we have at least one
+    if (students.length > 0) {
+      adminCharges.push({
+        studentId: students[0].id,
+        title: "Guest Stay Charge",
+        description: "Charge for guest staying overnight",
+        amount: 200.00,
+        chargeType: AdminChargeType.DAILY,
+        status: AdminChargeStatus.APPLIED,
+        appliedDate: new Date('2025-01-08'),
+        category: "Guest",
+        createdBy: "admin",
+        adminNotes: "Guest stayed for 2 nights"
+      });
+      
+      adminCharges.push({
+        studentId: students[0].id,
+        title: "Key Replacement",
+        description: "Replacement of lost room key",
+        amount: 150.00,
+        chargeType: AdminChargeType.ONE_TIME,
+        status: AdminChargeStatus.CANCELLED,
+        category: "Miscellaneous",
+        createdBy: "admin",
+        adminNotes: "Cancelled as key was found"
+      });
+    }
+
+    if (force) {
+      await this.adminChargeRepository.createQueryBuilder().delete().execute();
+    }
+
+    const savedCharges = await this.adminChargeRepository.save(adminCharges);
+
+    this.logger.log(`Seeded ${savedCharges.length} admin charges`);
+
+    return { count: savedCharges.length, data: savedCharges };
+  }
+
   async seedCustomData(seedData: any) {
     this.logger.log("Seeding custom data", seedData);
 
@@ -1510,6 +1625,10 @@ export class SeedService {
         .delete()
         .execute();
       results.ledgerEntries = await this.ledgerRepository
+        .createQueryBuilder()
+        .delete()
+        .execute();
+      results.adminCharges = await this.adminChargeRepository
         .createQueryBuilder()
         .delete()
         .execute();

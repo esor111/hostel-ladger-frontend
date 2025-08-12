@@ -14,6 +14,7 @@ import {
   CheckCircle,
   RefreshCw
 } from 'lucide-react';
+import { advancedLatencyOptimizer } from '../../utils/advancedLatencyOptimizer.js';
 
 interface PerformanceMetrics {
   // Core Web Vitals
@@ -55,6 +56,9 @@ export const PerformanceMonitor: React.FC = () => {
       // Get Core Web Vitals
       const webVitals = await getWebVitals();
       
+      // Get optimizer metrics
+      const optimizerMetrics = advancedLatencyOptimizer.getMetrics();
+      
       // Get memory usage
       const memoryInfo = getMemoryUsage();
       
@@ -64,11 +68,9 @@ export const PerformanceMonitor: React.FC = () => {
       // Combine all metrics
       const combinedMetrics: PerformanceMetrics = {
         ...webVitals,
+        ...optimizerMetrics,
         ...memoryInfo,
-        ...networkMetrics,
-        cacheHitRate: '85%',
-        preloadSuccessRate: '92%',
-        renderOptimizations: 12
+        ...networkMetrics
       };
       
       setMetrics(combinedMetrics);
@@ -86,86 +88,90 @@ export const PerformanceMonitor: React.FC = () => {
     return new Promise((resolve) => {
       const metrics: Partial<PerformanceMetrics> = {};
       
-      try {
-        // First Contentful Paint
-        const paintEntries = performance.getEntriesByType('paint');
-        const fcpEntry = paintEntries.find(entry => entry.name === 'first-contentful-paint');
-        if (fcpEntry) {
-          metrics.fcp = fcpEntry.startTime;
-        }
-        
-        // Time to First Byte
-        const navigationEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-        if (navigationEntry) {
-          metrics.ttfb = navigationEntry.responseStart - navigationEntry.requestStart;
-        }
-
-        // Mock LCP and FID for demo
-        metrics.lcp = 1800 + Math.random() * 1000;
-        metrics.fid = 50 + Math.random() * 100;
-        metrics.cls = Math.random() * 0.1;
-        
-      } catch (error) {
-        console.warn('Error collecting web vitals:', error);
+      // Largest Contentful Paint
+      new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        const lcp = entries[entries.length - 1];
+        metrics.lcp = lcp.startTime;
+      }).observe({ entryTypes: ['largest-contentful-paint'] });
+      
+      // First Input Delay
+      new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        entries.forEach(entry => {
+          metrics.fid = entry.processingStart - entry.startTime;
+        });
+      }).observe({ entryTypes: ['first-input'] });
+      
+      // Cumulative Layout Shift
+      new PerformanceObserver((list) => {
+        let clsValue = 0;
+        list.getEntries().forEach(entry => {
+          if (!entry.hadRecentInput) {
+            clsValue += entry.value;
+          }
+        });
+        metrics.cls = clsValue;
+      }).observe({ entryTypes: ['layout-shift'] });
+      
+      // First Contentful Paint
+      const paintEntries = performance.getEntriesByType('paint');
+      const fcpEntry = paintEntries.find(entry => entry.name === 'first-contentful-paint');
+      if (fcpEntry) {
+        metrics.fcp = fcpEntry.startTime;
       }
       
-      setTimeout(() => resolve(metrics), 100);
+      // Time to First Byte
+      const navigationEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      if (navigationEntry) {
+        metrics.ttfb = navigationEntry.responseStart - navigationEntry.requestStart;
+      }
+      
+      setTimeout(() => resolve(metrics), 1000);
     });
   };
 
   // Get memory usage information
   const getMemoryUsage = (): Partial<PerformanceMetrics> => {
-    try {
-      if ('memory' in performance) {
-        const memory = (performance as any).memory;
-        return {
-          memoryUsage: Math.round((memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100)
-        };
-      }
-    } catch (error) {
-      console.warn('Memory API not available:', error);
+    if ('memory' in performance) {
+      const memory = (performance as any).memory;
+      return {
+        memoryUsage: Math.round((memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100)
+      };
     }
-    
-    // Mock memory usage for demo
-    return {
-      memoryUsage: 45 + Math.random() * 30
-    };
+    return {};
   };
 
   // Get network performance metrics
   const getNetworkMetrics = (): Partial<PerformanceMetrics> => {
-    try {
-      const resourceEntries = performance.getEntriesByType('resource');
-      const networkRequests = resourceEntries.filter(entry => 
-        entry.name.includes('/api/') || entry.name.includes('/src/data/')
-      ).length;
-      
-      return { networkRequests };
-    } catch (error) {
-      console.warn('Error collecting network metrics:', error);
-      return { networkRequests: 0 };
-    }
+    const resourceEntries = performance.getEntriesByType('resource');
+    const networkRequests = resourceEntries.filter(entry => 
+      entry.name.includes('/api/') || entry.name.includes('/src/data/')
+    ).length;
+    
+    return { networkRequests };
   };
 
   // Update component-specific metrics
   const updateComponentMetrics = () => {
+    // This would typically come from a global performance store
     const mockComponentMetrics: ComponentMetric[] = [
       {
         name: 'StudentManagement',
-        duration: (12.5 + Math.random() * 5).toFixed(1),
-        memoryUsage: (2.1 + Math.random() * 0.5).toFixed(1),
+        duration: '12.5',
+        memoryUsage: '2.1',
         timestamp: Date.now() - 1000
       },
       {
         name: 'Dashboard',
-        duration: (8.3 + Math.random() * 3).toFixed(1),
-        memoryUsage: (1.8 + Math.random() * 0.3).toFixed(1),
+        duration: '8.3',
+        memoryUsage: '1.8',
         timestamp: Date.now() - 2000
       },
       {
         name: 'BillingManagement',
-        duration: (15.2 + Math.random() * 7).toFixed(1),
-        memoryUsage: (3.2 + Math.random() * 0.8).toFixed(1),
+        duration: '15.2',
+        memoryUsage: '3.2',
         timestamp: Date.now() - 3000
       }
     ];
@@ -354,7 +360,7 @@ export const PerformanceMonitor: React.FC = () => {
                 <div className="flex items-center justify-between text-xs">
                   <span>Heap Usage</span>
                   <span className={metrics.memoryUsage > 80 ? 'text-red-600' : 'text-green-600'}>
-                    {Math.round(metrics.memoryUsage)}%
+                    {metrics.memoryUsage}%
                   </span>
                 </div>
               </div>

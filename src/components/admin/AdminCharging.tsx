@@ -18,61 +18,70 @@ import {
   Search,
   Plus,
   Clock,
-  TrendingUp
+  TrendingUp,
+  Edit,
+  Trash2,
+  Eye
 } from 'lucide-react';
 
 const AdminCharging = () => {
   const { state, refreshAllData } = useAppContext();
   const { toast } = useToast();
   
+  // Form states
   const [selectedStudent, setSelectedStudent] = useState('');
-  const [chargeType, setChargeType] = useState('');
-  const [customDescription, setCustomDescription] = useState('');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  const [notes, setNotes] = useState('');
+  const [chargeType, setChargeType] = useState('one-time');
+  const [category, setCategory] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringMonths, setRecurringMonths] = useState('');
+  const [adminNotes, setAdminNotes] = useState('');
+  
+  // UI states
   const [isProcessing, setIsProcessing] = useState(false);
-  const [overdueStudents, setOverdueStudents] = useState([]);
-  const [chargeSummary, setChargeSummary] = useState(null);
+  const [adminCharges, setAdminCharges] = useState([]);
+  const [chargeStats, setChargeStats] = useState(null);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [showBulkCharge, setShowBulkCharge] = useState(false);
+  const [showChargesList, setShowChargesList] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('all');
 
   useEffect(() => {
-    loadChargeTypes();
-    loadOverdueStudents();
-    loadChargeSummary();
+    loadAdminCharges();
+    loadChargeStats();
   }, []);
 
-  const loadChargeTypes = async () => {
+  const loadAdminCharges = async () => {
     try {
-      await adminChargingService.loadChargeTypes();
+      const charges = await adminChargingService.getAllCharges();
+      setAdminCharges(charges);
     } catch (error) {
-      console.error('Error loading charge types:', error);
+      console.error('Error loading admin charges:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load admin charges',
+        variant: 'destructive'
+      });
     }
   };
 
-  const loadOverdueStudents = async () => {
+  const loadChargeStats = async () => {
     try {
-      const overdue = await adminChargingService.getOverdueStudents();
-      setOverdueStudents(overdue);
+      const stats = await adminChargingService.getChargeStats();
+      setChargeStats(stats);
     } catch (error) {
-      console.error('Error loading overdue students:', error);
+      console.error('Error loading charge statistics:', error);
     }
   };
 
-  const loadChargeSummary = async () => {
-    try {
-      const summary = await adminChargingService.getTodayChargeSummary();
-      setChargeSummary(summary);
-    } catch (error) {
-      console.error('Error loading charge summary:', error);
-    }
-  };
-
-  const handleAddCharge = async () => {
-    if (!selectedStudent || !chargeType || !amount) {
+  const handleCreateCharge = async () => {
+    if (!selectedStudent || !title || !amount) {
       toast({
         title: 'Missing Information',
-        description: 'Please fill in all required fields',
+        description: 'Please fill in all required fields (Student, Title, Amount)',
         variant: 'destructive'
       });
       return;
@@ -87,10 +96,10 @@ const AdminCharging = () => {
       return;
     }
 
-    if (chargeType === 'custom' && !customDescription.trim()) {
+    if (isRecurring && (!recurringMonths || parseInt(recurringMonths) <= 0)) {
       toast({
-        title: 'Missing Description',
-        description: 'Please enter a description for custom charge',
+        title: 'Invalid Recurring Months',
+        description: 'Please enter a valid number of months for recurring charges',
         variant: 'destructive'
       });
       return;
@@ -100,39 +109,37 @@ const AdminCharging = () => {
 
     try {
       const chargeData = {
-        type: chargeType,
+        studentId: selectedStudent,
+        title: title.trim(),
+        description: description.trim(),
         amount: parseFloat(amount),
-        description: chargeType === 'custom' ? customDescription : '',
-        notes: notes.trim(),
-        sendNotification: true
+        chargeType: chargeType,
+        category: category || 'Miscellaneous',
+        dueDate: dueDate || null,
+        isRecurring: isRecurring,
+        recurringMonths: isRecurring ? parseInt(recurringMonths) : null,
+        adminNotes: adminNotes.trim(),
+        createdBy: 'Admin'
       };
 
-      const result = await adminChargingService.addChargeToStudent(selectedStudent, chargeData, 'Admin');
+      const result = await adminChargingService.createCharge(chargeData);
 
-      if (result.success) {
-        toast({
-          title: 'Charge Added Successfully',
-          description: `NPR ${amount} ${result.description} added to ${result.student.name}'s account`,
-        });
+      toast({
+        title: 'Charge Created Successfully',
+        description: `${title} - $${amount} created for student`,
+      });
 
-        // Reset form
-        setSelectedStudent('');
-        setChargeType('');
-        setCustomDescription('');
-        setAmount('');
-        setNotes('');
+      // Reset form
+      resetForm();
 
-        // Refresh data
-        await refreshAllData();
-        await loadOverdueStudents();
-        await loadChargeSummary();
-      } else {
-        throw new Error(result.error);
-      }
+      // Refresh data
+      await loadAdminCharges();
+      await loadChargeStats();
+      await refreshAllData();
 
     } catch (error) {
       toast({
-        title: 'Error Adding Charge',
+        title: 'Error Creating Charge',
         description: error.message,
         variant: 'destructive'
       });
@@ -141,8 +148,21 @@ const AdminCharging = () => {
     }
   };
 
+  const resetForm = () => {
+    setSelectedStudent('');
+    setTitle('');
+    setDescription('');
+    setAmount('');
+    setChargeType('one-time');
+    setCategory('');
+    setDueDate('');
+    setIsRecurring(false);
+    setRecurringMonths('');
+    setAdminNotes('');
+  };
+
   const handleBulkCharge = async () => {
-    if (selectedStudents.length === 0 || !chargeType || !amount) {
+    if (selectedStudents.length === 0 || !title || !amount) {
       toast({
         title: 'Missing Information',
         description: 'Please select students and fill in charge details',
@@ -155,40 +175,42 @@ const AdminCharging = () => {
 
     try {
       const chargeData = {
-        type: chargeType,
+        title: title.trim(),
+        description: description.trim(),
         amount: parseFloat(amount),
-        description: chargeType === 'custom' ? customDescription : '',
-        notes: notes.trim(),
-        sendNotification: true
+        chargeType: chargeType,
+        category: category || 'Miscellaneous',
+        dueDate: dueDate || null,
+        isRecurring: isRecurring,
+        recurringMonths: isRecurring ? parseInt(recurringMonths) : null,
+        adminNotes: adminNotes.trim(),
+        createdBy: 'Admin'
       };
 
-      const result = await adminChargingService.addBulkCharges(selectedStudents, chargeData, 'Admin');
+      const result = await adminChargingService.createBulkCharges(selectedStudents, chargeData);
 
       toast({
-        title: 'Bulk Charges Applied',
-        description: `${result.successful.length} charges applied successfully. Total: NPR ${result.totalAmount}`,
+        title: 'Bulk Charges Created',
+        description: `${result.successful.length} charges created successfully`,
       });
 
       if (result.failed.length > 0) {
         toast({
           title: 'Some Charges Failed',
-          description: `${result.failed.length} charges failed to apply`,
+          description: `${result.failed.length} charges failed to create`,
           variant: 'destructive'
         });
       }
 
       // Reset form
       setSelectedStudents([]);
-      setChargeType('');
-      setCustomDescription('');
-      setAmount('');
-      setNotes('');
+      resetForm();
       setShowBulkCharge(false);
 
       // Refresh data
+      await loadAdminCharges();
+      await loadChargeStats();
       await refreshAllData();
-      await loadOverdueStudents();
-      await loadChargeSummary();
 
     } catch (error) {
       toast({
@@ -201,29 +223,72 @@ const AdminCharging = () => {
     }
   };
 
-  const handleQuickCharge = async (studentId, type, suggestedAmount) => {
+  const handleApplyCharge = async (chargeId) => {
     setIsProcessing(true);
 
     try {
-      const chargeData = {
-        type: type,
-        amount: suggestedAmount,
-        notes: 'Quick charge applied',
-        sendNotification: true
-      };
+      await adminChargingService.applyCharge(chargeId);
+      
+      toast({
+        title: 'Charge Applied',
+        description: 'Charge has been applied to student ledger',
+      });
 
-      const result = await adminChargingService.addChargeToStudent(studentId, chargeData, 'Admin');
+      await loadAdminCharges();
+      await loadChargeStats();
+      await refreshAllData();
 
-      if (result.success) {
-        toast({
-          title: 'Quick Charge Applied',
-          description: `NPR ${suggestedAmount} late fee added to ${result.student.name}'s account`,
-        });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive'
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
-        await refreshAllData();
-        await loadOverdueStudents();
-        await loadChargeSummary();
-      }
+  const handleCancelCharge = async (chargeId) => {
+    setIsProcessing(true);
+
+    try {
+      await adminChargingService.cancelCharge(chargeId);
+      
+      toast({
+        title: 'Charge Cancelled',
+        description: 'Charge has been cancelled',
+      });
+
+      await loadAdminCharges();
+      await loadChargeStats();
+
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive'
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDeleteCharge = async (chargeId) => {
+    if (!confirm('Are you sure you want to delete this charge?')) return;
+
+    setIsProcessing(true);
+
+    try {
+      await adminChargingService.deleteCharge(chargeId);
+      
+      toast({
+        title: 'Charge Deleted',
+        description: 'Charge has been deleted successfully',
+      });
+
+      await loadAdminCharges();
+      await loadChargeStats();
 
     } catch (error) {
       toast({
@@ -237,6 +302,9 @@ const AdminCharging = () => {
   };
 
   const selectedStudentData = state.students.find(s => s.id === selectedStudent);
+  const filteredCharges = adminCharges.filter(charge => 
+    filterStatus === 'all' || charge.status === filterStatus
+  );
 
   return (
     <div className="space-y-6">
@@ -244,9 +312,16 @@ const AdminCharging = () => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-bold text-gray-900">⚡ Admin Charging System</h2>
-          <p className="text-gray-600 mt-1">Complete flexibility to charge students for any reason</p>
+          <p className="text-gray-600 mt-1">Create and manage custom charges for students</p>
         </div>
         <div className="flex gap-3">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowChargesList(!showChargesList)}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            {showChargesList ? 'Hide Charges' : 'View Charges'}
+          </Button>
           <Button 
             variant="outline" 
             onClick={() => setShowBulkCharge(!showBulkCharge)}
@@ -257,17 +332,30 @@ const AdminCharging = () => {
         </div>
       </div>
 
-      {/* Today's Summary */}
-      {chargeSummary && (
+      {/* Statistics Summary */}
+      {chargeStats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-blue-600 font-medium">Total Charges</p>
-                  <p className="text-2xl font-bold text-blue-700">{chargeSummary.totalCharges}</p>
+                  <p className="text-2xl font-bold text-blue-700">{chargeStats.totalCharges}</p>
                 </div>
                 <Zap className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-yellow-50 to-yellow-100">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-yellow-600 font-medium">Pending</p>
+                  <p className="text-2xl font-bold text-yellow-700">{chargeStats.pendingCharges}</p>
+                  <p className="text-xs text-yellow-600">${chargeStats.totalPendingAmount.toFixed(2)}</p>
+                </div>
+                <Clock className="h-8 w-8 text-yellow-600" />
               </div>
             </CardContent>
           </Card>
@@ -276,34 +364,23 @@ const AdminCharging = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-green-600 font-medium">Total Amount</p>
-                  <p className="text-2xl font-bold text-green-700">NPR {chargeSummary.totalAmount.toLocaleString()}</p>
+                  <p className="text-sm text-green-600 font-medium">Applied</p>
+                  <p className="text-2xl font-bold text-green-700">{chargeStats.appliedCharges}</p>
+                  <p className="text-xs text-green-600">${chargeStats.totalAppliedAmount.toFixed(2)}</p>
                 </div>
-                <DollarSign className="h-8 w-8 text-green-600" />
+                <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-red-50 to-red-100">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-purple-600 font-medium">Students Charged</p>
-                  <p className="text-2xl font-bold text-purple-700">{chargeSummary.studentsCharged}</p>
+                  <p className="text-sm text-red-600 font-medium">Cancelled</p>
+                  <p className="text-2xl font-bold text-red-700">{chargeStats.cancelledCharges}</p>
                 </div>
-                <Users className="h-8 w-8 text-purple-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-orange-600 font-medium">Overdue Students</p>
-                  <p className="text-2xl font-bold text-orange-700">{overdueStudents.length}</p>
-                </div>
-                <AlertCircle className="h-8 w-8 text-orange-600" />
+                <AlertCircle className="h-8 w-8 text-red-600" />
               </div>
             </CardContent>
           </Card>
@@ -316,7 +393,7 @@ const AdminCharging = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Plus className="h-5 w-5" />
-              {showBulkCharge ? 'Bulk Charge Students' : 'Add Charge to Student'}
+              {showBulkCharge ? 'Create Bulk Charges' : 'Create New Charge'}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -335,7 +412,7 @@ const AdminCharging = () => {
                           <span>{student.name} - Room {student.roomNumber}</span>
                           {student.currentBalance > 0 && (
                             <Badge variant="destructive" className="ml-2">
-                              NPR {student.currentBalance.toLocaleString()} due
+                              ${student.currentBalance.toFixed(2)} due
                             </Badge>
                           )}
                         </div>
@@ -350,7 +427,7 @@ const AdminCharging = () => {
                       <strong>{selectedStudentData.name}</strong> - Room {selectedStudentData.roomNumber}
                     </p>
                     <p className="text-sm text-blue-600">
-                      Current Balance: NPR {(selectedStudentData.currentBalance || 0).toLocaleString()}
+                      Current Balance: ${(selectedStudentData.currentBalance || 0).toFixed(2)}
                     </p>
                   </div>
                 )}
@@ -379,7 +456,7 @@ const AdminCharging = () => {
                         {student.name} - Room {student.roomNumber}
                         {student.currentBalance > 0 && (
                           <span className="text-red-600 ml-2">
-                            (NPR {student.currentBalance.toLocaleString()} due)
+                            (${student.currentBalance.toFixed(2)} due)
                           </span>
                         )}
                       </label>
@@ -390,49 +467,113 @@ const AdminCharging = () => {
             )}
 
             <div className="space-y-2">
-              <Label>Charge Type *</Label>
-              <Select value={chargeType} onValueChange={setChargeType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select charge type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {adminChargingService.chargeTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Charge Title *</Label>
+              <Input
+                placeholder="Enter charge title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
             </div>
 
-            {chargeType === 'custom' && (
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Input
+                placeholder="Enter charge description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Custom Description *</Label>
+                <Label>Amount ($) *</Label>
                 <Input
-                  placeholder="Enter custom charge description"
-                  value={customDescription}
-                  onChange={(e) => setCustomDescription(e.target.value)}
+                  type="number"
+                  placeholder="Enter amount"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  min="0.01"
+                  step="0.01"
                 />
               </div>
-            )}
+
+              <div className="space-y-2">
+                <Label>Charge Type</Label>
+                <Select value={chargeType} onValueChange={setChargeType}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {adminChargingService.chargeTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {adminChargingService.chargeCategories.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Due Date</Label>
+                <Input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                />
+              </div>
+            </div>
 
             <div className="space-y-2">
-              <Label>Amount (NPR) *</Label>
-              <Input
-                type="number"
-                placeholder="Enter amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                min="1"
-              />
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="isRecurring"
+                  checked={isRecurring}
+                  onChange={(e) => setIsRecurring(e.target.checked)}
+                  className="rounded"
+                />
+                <Label htmlFor="isRecurring">Recurring Charge</Label>
+              </div>
+              
+              {isRecurring && (
+                <div className="ml-6">
+                  <Label>Number of Months</Label>
+                  <Input
+                    type="number"
+                    placeholder="Enter months"
+                    value={recurringMonths}
+                    onChange={(e) => setRecurringMonths(e.target.value)}
+                    min="1"
+                    className="w-32"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label>Admin Notes</Label>
               <Textarea
                 placeholder="Optional notes about this charge"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                value={adminNotes}
+                onChange={(e) => setAdminNotes(e.target.value)}
                 rows={3}
               />
             </div>
@@ -441,74 +582,244 @@ const AdminCharging = () => {
               <div className="flex items-start gap-2">
                 <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5" />
                 <div className="text-sm text-yellow-800">
-                  <p className="font-medium">Charge will be:</p>
+                  <p className="font-medium">Charge will be created as "Pending"</p>
                   <ul className="mt-1 space-y-1">
-                    <li>• Added directly to student ledger</li>
-                    <li>• Student will be notified via Kaha App</li>
-                    <li>• Balance will be updated immediately</li>
+                    <li>• Apply the charge to add it to student ledger</li>
+                    <li>• You can edit or cancel pending charges</li>
+                    <li>• Applied charges cannot be modified</li>
                   </ul>
                 </div>
               </div>
             </div>
 
             <Button 
-              onClick={showBulkCharge ? handleBulkCharge : handleAddCharge}
+              onClick={showBulkCharge ? handleBulkCharge : handleCreateCharge}
               disabled={isProcessing}
               className="w-full"
             >
-              {isProcessing ? 'Processing...' : showBulkCharge ? `Apply to ${selectedStudents.length} Students` : 'Add Charge to Ledger'}
+              {isProcessing ? 'Processing...' : showBulkCharge ? `Create for ${selectedStudents.length} Students` : 'Create Charge'}
             </Button>
           </CardContent>
         </Card>
 
-        {/* Overdue Students */}
+        {/* Recent Charges */}
         <Card className="border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5" />
-              Students with Overdue Payments ({overdueStudents.length})
+              Recent Admin Charges ({adminCharges.length})
             </CardTitle>
+            <div className="flex gap-2">
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="applied">Applied</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3 max-h-96 overflow-y-auto">
-              {overdueStudents.length > 0 ? (
-                overdueStudents.map((student) => (
-                  <div key={student.id} className="bg-red-50 border border-red-200 rounded-lg p-4">
+              {filteredCharges.length > 0 ? (
+                filteredCharges.slice(0, 10).map((charge) => (
+                  <div key={charge.id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-semibold text-gray-900">{student.name}</p>
-                        <p className="text-sm text-gray-600">Room: {student.roomNumber}</p>
-                        <p className="text-sm text-red-600">
-                          {student.daysOverdue} days overdue • NPR {(student.currentBalance || 0).toLocaleString()} due
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-semibold text-gray-900">{charge.title}</p>
+                          <Badge 
+                            variant={
+                              charge.status === 'pending' ? 'secondary' :
+                              charge.status === 'applied' ? 'default' : 'destructive'
+                            }
+                          >
+                            {adminChargingService.getChargeStatusLabel(charge.status)}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          {charge.student?.name} - {adminChargingService.formatAmount(charge.amount)}
                         </p>
+                        <p className="text-xs text-gray-500">
+                          {adminChargingService.getChargeTypeLabel(charge.chargeType)} • {charge.category}
+                        </p>
+                        {charge.description && (
+                          <p className="text-xs text-gray-500 mt-1">{charge.description}</p>
+                        )}
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600 mb-2">
-                          Suggested: NPR {student.suggestedLateFee}
-                        </p>
-                        <Button
-                          size="sm"
-                          onClick={() => handleQuickCharge(student.id, 'late_fee_overdue', student.suggestedLateFee)}
-                          disabled={isProcessing}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          Quick Charge
-                        </Button>
+                      <div className="flex gap-1 ml-4">
+                        {charge.status === 'pending' && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleApplyCharge(charge.id)}
+                              disabled={isProcessing}
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              Apply
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleCancelCharge(charge.id)}
+                              disabled={isProcessing}
+                              className="text-yellow-600 hover:text-yellow-700"
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDeleteCharge(charge.id)}
+                              disabled={isProcessing}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
                 <div className="text-center py-8">
-                  <CheckCircle className="h-12 w-12 mx-auto text-green-500 mb-4" />
-                  <p className="text-gray-600">No overdue payments!</p>
-                  <p className="text-sm text-gray-500">All students are up to date</p>
+                  <Zap className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600">No admin charges found</p>
+                  <p className="text-sm text-gray-500">Create your first charge above</p>
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Detailed Charges List */}
+      {showChargesList && (
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              All Admin Charges
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-2">Student</th>
+                    <th className="text-left p-2">Title</th>
+                    <th className="text-left p-2">Amount</th>
+                    <th className="text-left p-2">Type</th>
+                    <th className="text-left p-2">Category</th>
+                    <th className="text-left p-2">Status</th>
+                    <th className="text-left p-2">Created</th>
+                    <th className="text-left p-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCharges.map((charge) => (
+                    <tr key={charge.id} className="border-b hover:bg-gray-50">
+                      <td className="p-2">
+                        <div>
+                          <p className="font-medium">{charge.student?.name}</p>
+                          <p className="text-xs text-gray-500">Room {charge.student?.roomNumber}</p>
+                        </div>
+                      </td>
+                      <td className="p-2">
+                        <div>
+                          <p className="font-medium">{charge.title}</p>
+                          {charge.description && (
+                            <p className="text-xs text-gray-500">{charge.description}</p>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-2 font-medium">
+                        {adminChargingService.formatAmount(charge.amount)}
+                      </td>
+                      <td className="p-2">
+                        <Badge variant="outline">
+                          {adminChargingService.getChargeTypeLabel(charge.chargeType)}
+                        </Badge>
+                      </td>
+                      <td className="p-2">{charge.category}</td>
+                      <td className="p-2">
+                        <Badge 
+                          variant={
+                            charge.status === 'pending' ? 'secondary' :
+                            charge.status === 'applied' ? 'default' : 'destructive'
+                          }
+                        >
+                          {adminChargingService.getChargeStatusLabel(charge.status)}
+                        </Badge>
+                      </td>
+                      <td className="p-2 text-xs text-gray-500">
+                        {new Date(charge.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="p-2">
+                        <div className="flex gap-1">
+                          {charge.status === 'pending' && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleApplyCharge(charge.id)}
+                                disabled={isProcessing}
+                                className="text-green-600 hover:text-green-700 px-2 py-1 h-auto"
+                              >
+                                Apply
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleCancelCharge(charge.id)}
+                                disabled={isProcessing}
+                                className="text-yellow-600 hover:text-yellow-700 px-2 py-1 h-auto"
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDeleteCharge(charge.id)}
+                                disabled={isProcessing}
+                                className="text-red-600 hover:text-red-700 px-2 py-1 h-auto"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </>
+                          )}
+                          {charge.status === 'applied' && (
+                            <Badge variant="outline" className="text-green-600">
+                              Applied on {new Date(charge.appliedDate).toLocaleDateString()}
+                            </Badge>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              
+              {filteredCharges.length === 0 && (
+                <div className="text-center py-8">
+                  <Zap className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600">No charges found</p>
+                  <p className="text-sm text-gray-500">
+                    {filterStatus === 'all' ? 'Create your first charge above' : `No ${filterStatus} charges`}
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

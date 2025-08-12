@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,44 +9,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Plus, Send, FileText, Loader2 } from "lucide-react";
-import { invoiceService } from "@/services/invoiceService.js";
+import { Edit } from "lucide-react";
 
 interface Invoice {
   id: string;
-  studentId: string;
   studentName: string;
-  roomNumber: string;
+  room: string;
   month: string;
-  total: number;
-  status: 'Paid' | 'Unpaid' | 'Partially Paid';
-  dueDate: string;
-  createdAt: string;
-  items: Array<{
-    id: string;
-    description: string;
-    amount: number;
-    category: string;
-  }>;
-  payments: Array<any>;
-  discounts: Array<any>;
-  subtotal: number;
-  discountTotal: number;
-  paymentTotal: number;
-  balanceDue: number;
-  notes?: string;
-}
-
-interface InvoiceStats {
-  totalInvoices: number;
-  paidInvoices: number;
-  unpaidInvoices: number;
-  partiallyPaidInvoices: number;
-  overdueInvoices: number;
+  baseFee: number;
+  extraServices: number;
+  previousDue: number;
+  discount: number;
   totalAmount: number;
-  paidAmount: number;
-  outstandingAmount: number;
-  collectionRate: number;
+  status: 'unpaid' | 'partially_paid' | 'paid';
+  createdDate: string;
+  dueDate: string;
 }
 
 export const InvoiceManagement = () => {
