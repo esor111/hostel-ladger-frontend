@@ -57,7 +57,11 @@ const PaymentRecording = () => {
     const amountParam = params.get("amount");
     const typeParam = params.get("type");
 
-    if (studentParam && state.students.find((s) => s.id === studentParam)) {
+    if (
+      studentParam &&
+      Array.isArray(state.students) &&
+      state.students.find((s) => s.id === studentParam)
+    ) {
       setSelectedStudent(studentParam);
       setShowPaymentForm(true);
 
@@ -71,7 +75,9 @@ const PaymentRecording = () => {
         setPaymentMode("cash");
       }
 
-      const student = state.students.find((s) => s.id === studentParam);
+      const student = Array.isArray(state.students)
+        ? state.students.find((s) => s.id === studentParam)
+        : undefined;
       toast({
         title: "Payment Form Ready",
         description: `Payment form opened for ${student?.name}${
@@ -109,8 +115,8 @@ const PaymentRecording = () => {
     loadPayments();
   }, [toast]);
 
-  // Use real student data from context
-  const students = state.students.map((student) => ({
+  // Use real student data from context (defensive against non-array)
+  const students = (Array.isArray(state.students) ? state.students : []).map((student) => ({
     id: student.id,
     name: student.name,
     room: student.roomNumber,

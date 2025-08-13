@@ -23,21 +23,23 @@ export const StudentLedgerView = () => {
   const { state } = useAppContext();
   const location = useLocation();
   const [selectedStudent, setSelectedStudent] = useState("");
+  // Defensive: ensure students is always an array for mapping
+  const students = Array.isArray(state.students) ? state.students : [];
 
   // Handle URL parameters to auto-select student
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const studentParam = params.get('student');
     
-    if (studentParam && state.students.find(s => s.id === studentParam)) {
+    if (studentParam && students.find(s => s.id === studentParam)) {
       setSelectedStudent(studentParam);
     }
-  }, [location.search, state.students]);
+  }, [location.search, students]);
 
-  const students = state.students;
+  
 
   // Get real ledger data for selected student
-  const selectedStudentData = selectedStudent ? state.students.find(s => s.id === selectedStudent) : null;
+  const selectedStudentData = selectedStudent ? students.find(s => s.id === selectedStudent) : null;
   
   // Fetch real ledger entries from API
   const [ledgerEntries, setLedgerEntries] = useState<LedgerEntry[]>([]);

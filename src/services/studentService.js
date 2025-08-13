@@ -48,7 +48,12 @@ export const studentService = {
       const result = await apiRequest(endpoint);
       console.log("✅ Students API response:", result);
 
-      return result;
+      // API may return either an array or an object with { items, pagination }
+      const items = Array.isArray(result)
+        ? result
+        : (result && Array.isArray(result.items) ? result.items : []);
+      return items;
+
     } catch (error) {
       console.error("❌ Error fetching students:", error);
       throw error;
