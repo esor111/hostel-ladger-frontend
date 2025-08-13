@@ -85,8 +85,8 @@ export const AdminWorkflow = () => {
   const hostelConfigured = true; // Assume hostel is configured
   const roomsConfigured = true; // Assume rooms are configured
   const hasBookings = state.bookingRequests && state.bookingRequests.length > 0;
-  const hasStudents = state.students && state.students.length > 0;
-  const studentsConfigured = state.students && state.students.filter(s => s.status === 'Active').length > 0;
+  const hasStudents = Array.isArray(state.students) && state.students.length > 0;
+  const studentsConfigured = Array.isArray(state.students) && state.students.filter(s => s.status === 'Active').length > 0;
   
   const workflowSteps = [
     {

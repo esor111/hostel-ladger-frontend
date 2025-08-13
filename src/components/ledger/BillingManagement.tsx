@@ -62,7 +62,7 @@ export const BillingManagement = () => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const activeStudents = state.students.filter(s => s.status === 'Active');
+      const activeStudents = Array.isArray(state.students) ? state.students.filter(s => s.status === 'Active') : [];
       const totalAmount = activeStudents.reduce((sum, student) => 
         sum + student.baseMonthlyFee + student.laundryFee + student.foodFee, 0
       );
@@ -151,7 +151,7 @@ export const BillingManagement = () => {
               <Users className="h-5 w-5 text-green-600" />
               <div>
                 <div className="text-2xl font-bold text-green-600">
-                  {state.students.filter(s => s.status === 'Active').length}
+                  {Array.isArray(state.students) ? state.students.filter(s => s.status === 'Active').length : 0}
                 </div>
                 <div className="text-sm text-gray-500">Active Students</div>
               </div>
@@ -165,9 +165,9 @@ export const BillingManagement = () => {
               <DollarSign className="h-5 w-5 text-purple-600" />
               <div>
                 <div className="text-2xl font-bold text-purple-600">
-                  ₨{state.students.filter(s => s.status === 'Active').reduce((sum, s) => 
+                  ₨{(Array.isArray(state.students) ? state.students.filter(s => s.status === 'Active').reduce((sum, s) => 
                     sum + s.baseMonthlyFee + s.laundryFee + s.foodFee, 0
-                  ).toLocaleString()}
+                  ) : 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-gray-500">Monthly Revenue Target</div>
               </div>

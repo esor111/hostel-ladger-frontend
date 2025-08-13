@@ -70,3 +70,18 @@ export class CreatePaymentDto {
   @IsArray()
   invoiceIds?: string[];
 }
+
+export class InvoiceAllocationDto {
+  @ApiProperty({ description: 'Invoice ID' })
+  @IsString()
+  invoiceId: string;
+
+  @ApiProperty({ description: 'Amount to allocate' })
+  @IsNumber()
+  amount: number;
+
+  @ApiProperty({ description: 'Allocation notes', required: false })
+  @IsOptional()
+  @IsString()
+  notes?: string;
+}

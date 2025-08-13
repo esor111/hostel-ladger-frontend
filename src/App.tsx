@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "@/contexts/AppContext";
 import EnvironmentSwitcher from "@/components/EnvironmentSwitcher";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Lazy load components for better initial load performance
 const Landing = lazy(() => import("./pages/Landing"));
@@ -71,13 +72,15 @@ const App = () => {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AppProvider>
-          <Toaster />
-          <Sonner />
-          <EnvironmentSwitcher />
-          <BrowserRouter>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider delayDuration={300}>
+          <ErrorBoundary>
+            <AppProvider>
+                <Toaster />
+                <Sonner />
+                <EnvironmentSwitcher />
+                <BrowserRouter>
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
                 <Route
@@ -179,9 +182,11 @@ const App = () => {
               </Routes>
             </Suspense>
           </BrowserRouter>
-        </AppProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+              </AppProvider>
+            </ErrorBoundary>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

@@ -9,7 +9,8 @@ export enum InvoiceStatus {
   UNPAID = 'Unpaid',
   PARTIALLY_PAID = 'Partially Paid',
   OVERDUE = 'Overdue',
-  CANCELLED = 'Cancelled'
+  CANCELLED = 'Cancelled',
+  SENT = 'Sent'
 }
 
 @Entity('invoices')

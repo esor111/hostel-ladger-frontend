@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Student, StudentStatus } from '../students/entities/student.entity';
 import { LedgerEntry } from '../ledger/entities/ledger-entry.entity';
-import { Payment } from '../payments/entities/payment.entity';
-import { Invoice } from '../invoices/entities/invoice.entity';
+import { Payment, PaymentStatus } from '../payments/entities/payment.entity';
+import { Invoice, InvoiceStatus } from '../invoices/entities/invoice.entity';
 
 @Injectable()
 export class DashboardService {
@@ -33,7 +33,7 @@ export class DashboardService {
     const totalCollectedResult = await this.paymentRepository
       .createQueryBuilder('payment')
       .select('SUM(payment.amount)', 'total')
-      .where('payment.status = :status', { status: 'completed' })
+      .where('payment.status = :status', { status: PaymentStatus.COMPLETED })
       .getRawOne();
 
     const totalCollected = parseFloat(totalCollectedResult?.total) || 0;
@@ -55,7 +55,7 @@ export class DashboardService {
       .createQueryBuilder('payment')
       .select('SUM(payment.amount)', 'total')
       .where('payment.paymentDate >= :startDate', { startDate: firstDayOfMonth })
-      .andWhere('payment.status = :status', { status: 'completed' })
+      .andWhere('payment.status = :status', { status: PaymentStatus.COMPLETED })
       .getRawOne();
 
     const thisMonthCollection = parseFloat(thisMonthCollectionResult?.total) || 0;
@@ -72,7 +72,7 @@ export class DashboardService {
     // Get overdue invoices count
     const overdueInvoices = await this.invoiceRepository.count({
       where: {
-        status: 'overdue'
+        status: InvoiceStatus.OVERDUE
       }
     });
 
@@ -124,8 +124,8 @@ export class DashboardService {
         id: `invoice-${invoice.id}`,
         type: 'invoice',
         description: `Invoice generated for ${invoice.student?.name}`,
-        amount: invoice.totalAmount,
-        date: invoice.generatedDate,
+        amount: invoice.total,
+        date: invoice.createdAt,
         status: invoice.status
       });
     });
@@ -180,7 +180,7 @@ export class DashboardService {
       ])
       .where('payment.paymentDate >= :startDate', { startDate })
       .andWhere('payment.paymentDate <= :endDate', { endDate })
-      .andWhere('payment.status = :status', { status: 'completed' })
+      .andWhere('payment.status = :status', { status: PaymentStatus.COMPLETED })
       .groupBy('EXTRACT(YEAR FROM payment.paymentDate), EXTRACT(MONTH FROM payment.paymentDate)')
       .orderBy('year, month')
       .getRawMany();
@@ -207,7 +207,7 @@ export class DashboardService {
       studentName: invoice.student?.name,
       roomNumber: invoice.student?.room?.roomNumber,
       invoiceNumber: invoice.invoiceNumber,
-      amount: invoice.totalAmount,
+      amount: invoice.total,
       dueDate: invoice.dueDate,
       daysPastDue: Math.floor((new Date().getTime() - new Date(invoice.dueDate).getTime()) / (1000 * 60 * 60 * 24))
     }));

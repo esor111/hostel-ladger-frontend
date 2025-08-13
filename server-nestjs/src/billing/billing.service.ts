@@ -39,7 +39,7 @@ export class BillingService {
       .andWhere('invoice.generatedDate <= :endDate', { endDate: lastDayOfMonth })
       .getMany();
 
-    const currentMonthAmount = currentMonthInvoices.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
+    const currentMonthAmount = currentMonthInvoices.reduce((sum, invoice) => sum + invoice.total, 0);
     const paidInvoices = currentMonthInvoices.filter(inv => inv.status === InvoiceStatus.PAID).length;
     const overdueInvoices = await this.invoiceRepository.count({
       where: { status: InvoiceStatus.OVERDUE }
@@ -83,7 +83,7 @@ export class BillingService {
       success: true,
       generated: generatedInvoices.length,
       failed: errors.length,
-      totalAmount: generatedInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0),
+      totalAmount: generatedInvoices.reduce((sum, inv) => sum + inv.total, 0),
       invoices: generatedInvoices,
       errors: errors.length > 0 ? errors : undefined
     };
@@ -113,11 +113,10 @@ export class BillingService {
       invoiceNumber,
       studentId: student.id,
       month: `${this.getMonthName(month)} ${year}`,
-      totalAmount,
-      status: InvoiceStatus.PENDING,
-      generatedDate: new Date(),
+      total: totalAmount,
+      status: InvoiceStatus.UNPAID,
       dueDate: invoiceDueDate,
-      lineItems: JSON.stringify(lineItems)
+      notes: JSON.stringify(lineItems)
     });
 
     return await this.invoiceRepository.save(invoice);
@@ -248,11 +247,11 @@ export class BillingService {
       studentName: invoice.student?.name,
       roomNumber: invoice.student?.room?.roomNumber,
       month: invoice.month,
-      amount: invoice.totalAmount,
+      amount: invoice.total,
       status: invoice.status,
-      generatedDate: invoice.generatedDate,
+      generatedDate: invoice.createdAt,
       dueDate: invoice.dueDate,
-      paidDate: invoice.paidDate
+      paidDate: null // Will be set when payment is made
     }));
 
     return {

@@ -24,7 +24,7 @@
     "perf:audit": "lighthouse http://localhost:8080 --output=html --output-path=./performance-audit.html",
     "perf:bundle": "npx webpack-bundle-analyzer dist/assets/*.js",
     "optimize": "npm run lint:fix && npm run build:analyze",
-    "clean": "rm -rf dist node_modules/.vite",
+    "clean": "rmdir /s /q dist node_modules\\.vite 2>nul || echo Cache cleared",
     "precommit": "npm run lint && npm run test:run"
   },
   "dependencies": {

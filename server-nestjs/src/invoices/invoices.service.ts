@@ -187,21 +187,7 @@ export class InvoicesService {
     };
   }
 
-  async sendInvoice(id: string, method: string = 'email') {
-    const invoice = await this.findOne(id);
-    
-    // Implementation would involve:
-    // 1. Generate invoice PDF/document
-    // 2. Send via specified method (email, SMS, etc.)
-    // 3. Log the sending activity
-    
-    return {
-      success: true,
-      method: method,
-      sentTo: invoice.student?.email || invoice.student?.phone,
-      sentAt: new Date()
-    };
-  }
+
 
   // Transform normalized data back to exact API format
   private transformToApiResponse(invoice: Invoice): any {

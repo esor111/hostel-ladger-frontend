@@ -46,9 +46,9 @@ export const StudentCheckoutManagement = () => {
     const loadStudents = () => {
         try {
             setLoading(true);
-            const activeStudents = state.students.filter((student: Student) => 
+            const activeStudents = Array.isArray(state.students) ? state.students.filter((student: Student) => 
                 student.status === 'Active'
-            );
+            ) : [];
             setStudents(activeStudents);
             setFilteredStudents(activeStudents);
         } catch (error) {

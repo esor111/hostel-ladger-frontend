@@ -32,10 +32,10 @@ export const Dashboard = () => {
   const { goToBookings, goToLedger, goToStudentLedger } = useNavigation();
 
   // Calculate real-time statistics
-  const totalStudents = state.students.length;
-  const activeStudents = state.students.filter(s => s.status === 'Active').length;
+  const totalStudents = Array.isArray(state.students) ? state.students.length : 0;
+  const activeStudents = Array.isArray(state.students) ? state.students.filter(s => s.status === 'Active').length : 0;
   const pendingBookings = state.bookingRequests.filter(r => r.status === 'Pending').length;
-  const totalDues = state.students.reduce((sum, s) => sum + (s.currentBalance || 0), 0);
+  const totalDues = Array.isArray(state.students) ? state.students.reduce((sum, s) => sum + (s.currentBalance || 0), 0) : 0;
 
   const paidInvoices = state.invoices.filter(i => i.status === 'Paid').length;
   const totalRevenue = state.invoices.filter(i => i.status === 'Paid').reduce((sum, i) => sum + i.total, 0);

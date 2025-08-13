@@ -160,7 +160,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const getStudentById = (id: string): Student | undefined => {
-    return state.students.find(student => student.id === id);
+    return Array.isArray(state.students) ? state.students.find(student => student.id === id) : undefined;
   };
 
   const getStudentInvoices = (studentId: string): Invoice[] => {

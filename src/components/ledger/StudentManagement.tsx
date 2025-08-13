@@ -120,12 +120,14 @@ export const StudentManagement = () => {
     }
   };
 
-  const filteredStudents = state.students.filter(
-    (student) =>
-      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.phone.includes(searchTerm)
-  );
+  const filteredStudents = Array.isArray(state.students)
+    ? state.students.filter(
+        (student) =>
+          student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          student.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          student.phone.includes(searchTerm)
+      )
+    : [];
 
   return (
     <div className="space-y-8">
@@ -153,11 +155,14 @@ export const StudentManagement = () => {
                   {state.students.length} Total Students
                 </Badge>
                 <Badge className="bg-gradient-to-r from-[#07A64F] to-[#059669] text-white border-0 px-4 py-2">
-                  {state.students.filter(s => s.status === 'Active').length} Active
+                  {Array.isArray(state.students)
+                    ? state.students.filter((s) => s.status === "Active").length
+                    : 0}{" "}
+                  Active
                 </Badge>
               </div>
             </div>
-            <Button 
+            <Button
               onClick={() => setShowAddStudentDialog(true)}
               className="bg-gradient-to-r from-[#07A64F] to-[#059669] hover:from-[#07A64F]/90 hover:to-[#059669]/90 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-3"
             >
@@ -183,7 +188,10 @@ export const StudentManagement = () => {
                   className="pl-10 bg-white/50 border-slate-200/50 focus:bg-white/80 transition-all duration-200"
                 />
               </div>
-              <Badge variant="outline" className="text-slate-600 border-slate-300">
+              <Badge
+                variant="outline"
+                className="text-slate-600 border-slate-300"
+              >
                 {filteredStudents.length} Results
               </Badge>
             </div>
@@ -194,7 +202,10 @@ export const StudentManagement = () => {
       {/* Premium Student Cards */}
       <div className="grid gap-6">
         {filteredStudents.map((student) => (
-          <Card key={student.id} className="group hover:shadow-2xl transition-all duration-300 border-slate-200/50 bg-white/80 backdrop-blur-sm">
+          <Card
+            key={student.id}
+            className="group hover:shadow-2xl transition-all duration-300 border-slate-200/50 bg-white/80 backdrop-blur-sm"
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
@@ -202,7 +213,9 @@ export const StudentManagement = () => {
                     {student.name.charAt(0)}
                   </div>
                   <div className="space-y-1">
-                    <h3 className="text-xl font-semibold text-slate-800">{student.name}</h3>
+                    <h3 className="text-xl font-semibold text-slate-800">
+                      {student.name}
+                    </h3>
                     <div className="flex items-center space-x-4 text-sm text-slate-600">
                       <div className="flex items-center space-x-1">
                         <Home className="h-4 w-4 text-[#1295D0]" />
@@ -221,18 +234,18 @@ export const StudentManagement = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
-                  <Badge 
+                  <Badge
                     className={`px-3 py-1 ${
-                      student.status === 'Active' 
-                        ? 'bg-gradient-to-r from-[#07A64F] to-[#059669] text-white' 
-                        : 'bg-slate-100 text-slate-600'
+                      student.status === "Active"
+                        ? "bg-gradient-to-r from-[#07A64F] to-[#059669] text-white"
+                        : "bg-slate-100 text-slate-600"
                     }`}
                   >
                     {student.status}
                   </Badge>
-                  
+
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="outline"
@@ -282,12 +295,16 @@ export const StudentManagement = () => {
         <Card className="bg-slate-50/50 border-slate-200/50">
           <CardContent className="p-12 text-center">
             <Users className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-slate-600 mb-2">No Students Found</h3>
+            <h3 className="text-xl font-semibold text-slate-600 mb-2">
+              No Students Found
+            </h3>
             <p className="text-slate-500 mb-6">
-              {searchTerm ? 'No students match your search criteria.' : 'No students have been added yet.'}
+              {searchTerm
+                ? "No students match your search criteria."
+                : "No students have been added yet."}
             </p>
             {!searchTerm && (
-              <Button 
+              <Button
                 onClick={() => setShowAddStudentDialog(true)}
                 className="bg-gradient-to-r from-[#07A64F] to-[#059669] hover:from-[#07A64F]/90 hover:to-[#059669]/90 text-white"
               >
@@ -302,7 +319,7 @@ export const StudentManagement = () => {
       {/* Student Checkout Modal */}
       {checkoutStudentId && (
         <StudentCheckout
-          student={state.students.find(s => s.id === checkoutStudentId)}
+          student={state.students.find((s) => s.id === checkoutStudentId)}
           isOpen={!!checkoutStudentId}
           onClose={() => setCheckoutStudentId("")}
           onComplete={() => {
@@ -315,11 +332,13 @@ export const StudentManagement = () => {
       {/* Student Charge Configuration Modal */}
       {chargeConfigStudentId && (
         <StudentChargeConfiguration
-          student={state.students.find(s => s.id === chargeConfigStudentId)}
+          student={state.students.find((s) => s.id === chargeConfigStudentId)}
           isOpen={!!chargeConfigStudentId}
           onClose={() => setChargeConfigStudentId("")}
           onSuccess={() => {
-            toast.success("Student charges have been configured and initial invoice generated.");
+            toast.success(
+              "Student charges have been configured and initial invoice generated."
+            );
             setChargeConfigStudentId("");
             refreshAllData();
           }}

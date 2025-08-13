@@ -148,7 +148,7 @@ const MonthlyBillingComponent = () => {
     }
   };
 
-  const activeStudents = state.students.filter(s => s.status === 'Active');
+  const activeStudents = Array.isArray(state.students) ? state.students.filter(s => s.status === 'Active') : [];
   const totalMonthlyRevenue = activeStudents.reduce((sum, student) => {
     return sum + (student.baseMonthlyFee || 15000) + (student.laundryFee || 1500) + (student.foodFee || 4500);
   }, 0);
