@@ -6,6 +6,7 @@ import { useState, useEffect, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, User, Calendar, CreditCard } from "lucide-react";
 import { ledgerService } from "../../services/ledgerService.js";
+import { dashboardService } from "../../services/dashboardService.js";
 
 export const Dashboard = memo(() => {
   const navigate = useNavigate();
@@ -28,33 +29,37 @@ export const Dashboard = memo(() => {
       try {
         setLoading(true);
         
-        // Try to load from API first
+        // Load dashboard data from API
         try {
-          const data = await ledgerService.getLedgerSummary();
+          const [statsData, checkedOutData] = await Promise.all([
+            dashboardService.getDashboardStats(),
+            dashboardService.getCheckedOutWithDues()
+          ]);
+          
           setDashboardStats({
-            totalStudents: data.totalStudents || 156,
-            totalCollected: data.totalCollected || 450000,
-            totalDues: data.outstandingDues || 85000,
-            thisMonthCollection: data.thisMonthCollection || 120000,
-            advanceBalances: data.advanceBalances || 25000,
-            overdueInvoices: data.highestDueStudents?.length || 0
+            totalStudents: statsData.totalStudents || 0,
+            totalCollected: statsData.totalCollected || 0,
+            totalDues: statsData.totalDues || 0,
+            thisMonthCollection: statsData.thisMonthCollection || 0,
+            advanceBalances: statsData.advanceBalances || 0,
+            overdueInvoices: statsData.overdueInvoices || 0
           });
+          
+          setCheckedOutWithDues(checkedOutData || []);
+          
         } catch (apiError) {
-          console.error('API failed, using mock data:', apiError);
-          // Fallback to mock data
+          console.error('Dashboard API failed, using fallback data:', apiError);
+          // Fallback to basic data structure
           setDashboardStats({
-            totalStudents: 156,
-            totalCollected: 450000,
-            totalDues: 85000,
-            thisMonthCollection: 120000,
-            advanceBalances: 25000,
-            overdueInvoices: 3
+            totalStudents: 0,
+            totalCollected: 0,
+            totalDues: 0,
+            thisMonthCollection: 0,
+            advanceBalances: 0,
+            overdueInvoices: 0
           });
+          setCheckedOutWithDues([]);
         }
-        
-        // Load checked out students with dues from localStorage
-        const checkedOutData = JSON.parse(localStorage.getItem('checkedOutWithDues') || '[]');
-        setCheckedOutWithDues(checkedOutData);
         
       } catch (error) {
         console.error('Error loading dashboard data:', error);

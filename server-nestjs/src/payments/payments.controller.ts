@@ -1,148 +1,131 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Body,
-  Param,
-  Query,
-  HttpStatus,
-} from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
-import { PaymentsService } from "./payments.service";
-import { CreatePaymentDto } from "./dto/create-payment.dto";
-import { UpdatePaymentDto } from "./dto/update-payment.dto";
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, HttpStatus, ValidationPipe } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { PaymentsService } from './payments.service';
+import { CreatePaymentDto, UpdatePaymentDto } from './dto';
 
-@ApiTags("payments")
-@Controller("payments")
+@ApiTags('payments')
+@Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Get()
-  @ApiOperation({ summary: "Get all payments" })
-  @ApiResponse({
-    status: 200,
-    description: "List of payments retrieved successfully",
-  })
+  @ApiOperation({ summary: 'Get all payments with filtering and pagination' })
+  @ApiResponse({ status: 200, description: 'Payments retrieved successfully' })
   async getAllPayments(@Query() query: any) {
     const result = await this.paymentsService.findAll(query);
-
-    // Return EXACT same format as current Express API
+    
     return {
       status: HttpStatus.OK,
-      result: result,
+      data: result
     };
   }
 
-  @Get("stats")
-  @ApiOperation({ summary: "Get payment statistics" })
-  @ApiResponse({
-    status: 200,
-    description: "Payment statistics retrieved successfully",
-  })
+  @Get('stats')
+  @ApiOperation({ summary: 'Get payment statistics' })
+  @ApiResponse({ status: 200, description: 'Payment statistics retrieved successfully' })
   async getPaymentStats() {
     const stats = await this.paymentsService.getStats();
-
-    // Return EXACT same format as current Express API
+    
     return {
       status: HttpStatus.OK,
-      stats: stats,
+      data: stats
     };
   }
 
-  @Get("student/:studentId")
-  @ApiOperation({ summary: "Get payments by student ID" })
-  @ApiResponse({
-    status: 200,
-    description: "Student payments retrieved successfully",
-  })
-  async getPaymentsByStudentId(@Param("studentId") studentId: string) {
-    const payments = await this.paymentsService.findByStudentId(studentId);
-
-    // Return EXACT same format as current Express API
+  @Get('methods')
+  @ApiOperation({ summary: 'Get available payment methods' })
+  @ApiResponse({ status: 200, description: 'Payment methods retrieved successfully' })
+  async getPaymentMethods() {
+    const methods = await this.paymentsService.getPaymentMethods();
+    
     return {
       status: HttpStatus.OK,
-      data: payments,
+      data: methods
     };
   }
 
-  @Get(":id")
-  @ApiOperation({ summary: "Get payment by ID" })
-  @ApiResponse({ status: 200, description: "Payment retrieved successfully" })
-  @ApiResponse({ status: 404, description: "Payment not found" })
-  async getPaymentById(@Param("id") id: string) {
+  @Get(':id')
+  @ApiOperation({ summary: 'Get payment by ID' })
+  @ApiResponse({ status: 200, description: 'Payment retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Payment not found' })
+  async getPaymentById(@Param('id') id: string) {
     const payment = await this.paymentsService.findOne(id);
-
-    // Return EXACT same format as current Express API
+    
     return {
       status: HttpStatus.OK,
-      data: payment,
+      data: payment
     };
   }
 
   @Post()
-  @ApiOperation({ summary: "Record new payment" })
-  @ApiResponse({ status: 201, description: "Payment recorded successfully" })
-  async recordPayment(@Body() createPaymentDto: CreatePaymentDto) {
+  @ApiOperation({ summary: 'Record new payment' })
+  @ApiResponse({ status: 201, description: 'Payment recorded successfully' })
+  async recordPayment(@Body(ValidationPipe) createPaymentDto: CreatePaymentDto) {
     const payment = await this.paymentsService.create(createPaymentDto);
-
-    // Return EXACT same format as current Express API
+    
     return {
       status: HttpStatus.CREATED,
-      data: payment,
+      data: payment
     };
   }
 
-  @Put(":id")
-  @ApiOperation({ summary: "Update payment" })
-  @ApiResponse({ status: 200, description: "Payment updated successfully" })
-  async updatePayment(
-    @Param("id") id: string,
-    @Body() updatePaymentDto: UpdatePaymentDto
-  ) {
+  @Put(':id')
+  @ApiOperation({ summary: 'Update payment' })
+  @ApiResponse({ status: 200, description: 'Payment updated successfully' })
+  async updatePayment(@Param('id') id: string, @Body(ValidationPipe) updatePaymentDto: UpdatePaymentDto) {
     const payment = await this.paymentsService.update(id, updatePaymentDto);
-
-    // Return EXACT same format as current Express API
+    
     return {
       status: HttpStatus.OK,
-      data: payment,
+      data: payment
     };
   }
 
-  @Post("bulk")
-  @ApiOperation({ summary: "Process bulk payments" })
-  @ApiResponse({
-    status: 200,
-    description: "Bulk payments processed successfully",
-  })
-  async processBulkPayments(@Body() bulkPaymentDto: any) {
-    const result = await this.paymentsService.processBulkPayments(
-      bulkPaymentDto.payments
-    );
-
-    // Return EXACT same format as current Express API
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete payment' })
+  @ApiResponse({ status: 200, description: 'Payment deleted successfully' })
+  async deletePayment(@Param('id') id: string) {
+    const result = await this.paymentsService.remove(id);
+    
     return {
       status: HttpStatus.OK,
-      data: result,
+      data: result
     };
   }
 
-  @Post(":id/allocate")
-  @ApiOperation({ summary: "Allocate payment to invoices" })
-  @ApiResponse({ status: 200, description: "Payment allocated successfully" })
-  async allocatePaymentToInvoices(
-    @Param("id") id: string,
-    @Body() allocationDto: any
-  ) {
-    const result = await this.paymentsService.allocatePaymentToInvoices(
-      id,
-      allocationDto.invoiceAllocations
-    );
-
-    // Return EXACT same format as current Express API
+  @Get('student/:studentId')
+  @ApiOperation({ summary: 'Get payments for a specific student' })
+  @ApiResponse({ status: 200, description: 'Student payments retrieved successfully' })
+  async getStudentPayments(@Param('studentId') studentId: string) {
+    const payments = await this.paymentsService.findByStudentId(studentId);
+    
     return {
       status: HttpStatus.OK,
-      data: result,
+      data: payments
+    };
+  }
+
+  @Post('bulk')
+  @ApiOperation({ summary: 'Record multiple payments' })
+  @ApiResponse({ status: 201, description: 'Bulk payments recorded successfully' })
+  async recordBulkPayments(@Body(ValidationPipe) bulkPaymentDto: any) {
+    const result = await this.paymentsService.createBulk(bulkPaymentDto);
+    
+    return {
+      status: HttpStatus.CREATED,
+      data: result
+    };
+  }
+
+  @Get('summary/monthly')
+  @ApiOperation({ summary: 'Get monthly payment summary' })
+  @ApiResponse({ status: 200, description: 'Monthly payment summary retrieved successfully' })
+  async getMonthlyPaymentSummary(@Query('months') months: number = 12) {
+    const summary = await this.paymentsService.getMonthlyPaymentSummary(months);
+    
+    return {
+      status: HttpStatus.OK,
+      data: summary
     };
   }
 }

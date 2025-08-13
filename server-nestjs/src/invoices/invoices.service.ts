@@ -285,4 +285,144 @@ export class InvoicesService {
   private generateItemId(): string {
     return `ITEM${Date.now()}${Math.floor(Math.random() * 100)}`;
   }
+
+  async findByStudentId(studentId: string) {
+    const invoices = await this.invoiceRepository.find({
+      where: { studentId },
+      relations: [
+        'student',
+        'student.room',
+        'items',
+        'paymentAllocations',
+        'paymentAllocations.payment'
+      ],
+      order: { createdAt: 'DESC' }
+    });
+    
+    return invoices.map(invoice => this.transformToApiResponse(invoice));
+  }
+
+  async createBulk(bulkInvoiceDto: any) {
+    const results = {
+      successful: 0,
+      failed: 0,
+      errors: []
+    };
+
+    for (const invoiceData of bulkInvoiceDto.invoices) {
+      try {
+        await this.create(invoiceData);
+        results.successful++;
+      } catch (error) {
+        results.failed++;
+        results.errors.push({
+          invoice: invoiceData,
+          error: error.message
+        });
+      }
+    }
+
+    return results;
+  }
+
+  async remove(id: string) {
+    const invoice = await this.findOne(id);
+    
+    // Soft delete - mark as cancelled
+    await this.invoiceRepository.update(id, {
+      status: InvoiceStatus.CANCELLED
+    });
+
+    return {
+      success: true,
+      message: 'Invoice cancelled successfully',
+      invoiceId: id
+    };
+  }
+
+  async updateStatus(id: string, status: InvoiceStatus, notes?: string) {
+    const invoice = await this.findOne(id);
+    
+    await this.invoiceRepository.update(id, {
+      status,
+      notes: notes || invoice.notes
+    });
+
+    return {
+      success: true,
+      message: 'Invoice status updated successfully',
+      invoiceId: id,
+      newStatus: status
+    };
+  }
+
+  async sendInvoice(id: string) {
+    const invoice = await this.findOne(id);
+    
+    // Mark as sent
+    await this.invoiceRepository.update(id, {
+      status: InvoiceStatus.SENT
+    });
+
+    return {
+      success: true,
+      method: 'email',
+      sentTo: invoice.student?.email || invoice.student?.phone,
+      sentAt: new Date(),
+      invoiceId: id
+    };
+  }
+
+  async getOverdueInvoices() {
+    const currentDate = new Date();
+    
+    const overdueInvoices = await this.invoiceRepository
+      .createQueryBuilder('invoice')
+      .leftJoinAndSelect('invoice.student', 'student')
+      .leftJoinAndSelect('student.room', 'room')
+      .where('invoice.dueDate < :currentDate', { currentDate })
+      .andWhere('invoice.status IN (:...statuses)', { 
+        statuses: [InvoiceStatus.UNPAID, InvoiceStatus.PARTIALLY_PAID, InvoiceStatus.SENT] 
+      })
+      .orderBy('invoice.dueDate', 'ASC')
+      .getMany();
+
+    return overdueInvoices.map(invoice => ({
+      ...this.transformToApiResponse(invoice),
+      daysPastDue: Math.floor((currentDate.getTime() - new Date(invoice.dueDate).getTime()) / (1000 * 60 * 60 * 24))
+    }));
+  }
+
+  async getMonthlyInvoiceSummary(months: number = 12) {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - months);
+
+    const monthlyData = await this.invoiceRepository
+      .createQueryBuilder('invoice')
+      .select([
+        'EXTRACT(YEAR FROM invoice.createdAt) as year',
+        'EXTRACT(MONTH FROM invoice.createdAt) as month',
+        'COUNT(*) as count',
+        'SUM(invoice.total) as totalAmount',
+        'SUM(invoice.paymentTotal) as paidAmount',
+        'SUM(CASE WHEN invoice.status = :paidStatus THEN 1 ELSE 0 END) as paidCount'
+      ])
+      .where('invoice.createdAt >= :startDate', { startDate })
+      .andWhere('invoice.createdAt <= :endDate', { endDate })
+      .setParameter('paidStatus', InvoiceStatus.PAID)
+      .groupBy('EXTRACT(YEAR FROM invoice.createdAt), EXTRACT(MONTH FROM invoice.createdAt)')
+      .orderBy('year, month')
+      .getRawMany();
+
+    // Format the data
+    return monthlyData.map(data => ({
+      month: new Date(data.year, data.month - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      count: parseInt(data.count),
+      totalAmount: parseFloat(data.totalAmount) || 0,
+      paidAmount: parseFloat(data.paidAmount) || 0,
+      paidCount: parseInt(data.paidCount),
+      collectionRate: data.count > 0 ? (parseInt(data.paidCount) / parseInt(data.count)) * 100 : 0
+    }));
+  }
 }

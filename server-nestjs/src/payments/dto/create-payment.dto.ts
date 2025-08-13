@@ -1,79 +1,72 @@
-import { IsString, IsNumber, IsOptional, IsDateString, IsEnum, Min } from 'class-validator';
-import { Transform } from 'class-transformer';
-
-export enum PaymentMethod {
-  CASH = 'cash',
-  CARD = 'card',
-  BANK_TRANSFER = 'bank_transfer',
-  UPI = 'upi',
-  CHEQUE = 'cheque',
-  ONLINE = 'online'
-}
+import { IsString, IsNumber, IsOptional, IsEnum, IsDateString, IsArray } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { PaymentMethod, PaymentStatus } from '../entities/payment.entity';
 
 export class CreatePaymentDto {
-  @IsOptional()
-  @IsString()
-  id?: string;
-
+  @ApiProperty({ description: 'Student ID' })
   @IsString()
   studentId: string;
 
+  @ApiProperty({ description: 'Payment amount' })
   @IsNumber()
-  @Min(0.01)
-  @Transform(({ value }) => parseFloat(value))
   amount: number;
 
-  @IsOptional()
-  @IsDateString()
-  paymentDate?: string;
-
+  @ApiProperty({ description: 'Payment method', enum: PaymentMethod })
   @IsEnum(PaymentMethod)
   paymentMethod: PaymentMethod;
 
+  @ApiProperty({ description: 'Payment date', required: false })
+  @IsOptional()
+  @IsDateString()
+  paymentDate?: Date;
+
+  @ApiProperty({ description: 'Payment reference', required: false })
+  @IsOptional()
+  @IsString()
+  reference?: string;
+
+  @ApiProperty({ description: 'Payment notes', required: false })
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
+  @ApiProperty({ description: 'Payment status', enum: PaymentStatus, required: false })
+  @IsOptional()
+  @IsEnum(PaymentStatus)
+  status?: PaymentStatus;
+
+  @ApiProperty({ description: 'Transaction ID', required: false })
   @IsOptional()
   @IsString()
   transactionId?: string;
 
+  @ApiProperty({ description: 'Receipt number', required: false })
   @IsOptional()
   @IsString()
-  referenceNumber?: string;
+  receiptNumber?: string;
 
-  @IsOptional()
-  @IsString()
-  notes?: string;
-
+  @ApiProperty({ description: 'Processed by', required: false })
   @IsOptional()
   @IsString()
   processedBy?: string;
 
-  @IsOptional()
-  @IsString()
-  status?: string;
-
-  // For bank transfer/cheque specific fields
+  @ApiProperty({ description: 'Bank name (for bank transfers)', required: false })
   @IsOptional()
   @IsString()
   bankName?: string;
 
+  @ApiProperty({ description: 'Cheque number (for cheque payments)', required: false })
   @IsOptional()
   @IsString()
   chequeNumber?: string;
 
+  @ApiProperty({ description: 'Cheque date (for cheque payments)', required: false })
   @IsOptional()
   @IsDateString()
-  chequeDate?: string;
-}
+  chequeDate?: Date;
 
-export class InvoiceAllocationDto {
-  @IsString()
-  invoiceId: string;
-
-  @IsNumber()
-  @Min(0.01)
-  @Transform(({ value }) => parseFloat(value))
-  amount: number;
-
+  @ApiProperty({ description: 'Invoice IDs to allocate payment to', required: false })
   @IsOptional()
-  @IsString()
-  notes?: string;
+  @IsArray()
+  invoiceIds?: string[];
 }

@@ -1,279 +1,152 @@
-import { invoiceService } from './invoiceService.js';
-import { ledgerService } from './ledgerService.js';
-import { studentService } from './studentService.js';
-import { notificationService } from './notificationService.js';
+import { getEnvironmentConfig } from '../config/environment.ts';
+
+const API_BASE_URL = getEnvironmentConfig().apiBaseUrl;
+
+// Helper function to handle API requests
+async function apiRequest(endpoint, options = {}) {
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+      ...options,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || `HTTP ${response.status}: ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    return data.data; // API returns data in { status, data } format
+  } catch (error) {
+    console.error("Billing API Request Error:", error);
+    throw error;
+  }
+}
 
 export const billingService = {
-  // Calculate prorated amount for partial month (enrollment or checkout)
-  calculateProratedAmount(monthlyAmount, startDate, endDate = null) {
-    const start = new Date(startDate);
-    const year = start.getFullYear();
-    const month = start.getMonth();
-    
-    // Get total days in the month
-    const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    let daysToCalculate;
-    let calculationType;
-    
-    if (endDate) {
-      // Checkout scenario - calculate days used
-      const end = new Date(endDate);
-      const startDay = start.getDate();
-      const endDay = end.getDate();
-      
-      if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
-        // Same month checkout
-        daysToCalculate = endDay - startDay + 1;
-        calculationType = 'checkout_same_month';
-      } else {
-        // Different month - calculate remaining days in start month
-        daysToCalculate = totalDaysInMonth - startDay + 1;
-        calculationType = 'checkout_different_month';
-      }
-    } else {
-      // Enrollment scenario - calculate remaining days in month
-      daysToCalculate = totalDaysInMonth - start.getDate() + 1;
-      calculationType = 'enrollment';
-    }
-    
-    // Calculate prorated amount
-    const proratedAmount = Math.round((monthlyAmount * daysToCalculate) / totalDaysInMonth);
-    
-    return {
-      totalDaysInMonth,
-      daysToCalculate,
-      proratedAmount,
-      isProrated: daysToCalculate < totalDaysInMonth,
-      calculationType,
-      dailyRate: Math.round(monthlyAmount / totalDaysInMonth)
-    };
-  },
-
-  // Calculate checkout refund for unused days in current month
-  calculateCheckoutRefund(student, checkoutDate) {
-    const checkout = new Date(checkoutDate);
-    const currentMonth = checkout.getMonth();
-    const currentYear = checkout.getFullYear();
-    
-    // Get student's monthly charges
-    const monthlyCharges = student.chargeConfiguration?.filter(c => 
-      c.isActive && c.type === 'monthly'
-    ) || [];
-    
-    const totalMonthlyAmount = monthlyCharges.reduce((sum, charge) => sum + charge.amount, 0);
-    
-    // Calculate days remaining in month after checkout
-    const totalDaysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    const checkoutDay = checkout.getDate();
-    const remainingDays = totalDaysInMonth - checkoutDay;
-    
-    // Calculate refund amount for unused days
-    const refundAmount = remainingDays > 0 ? 
-      Math.round((totalMonthlyAmount * remainingDays) / totalDaysInMonth) : 0;
-    
-    return {
-      totalDaysInMonth,
-      checkoutDay,
-      remainingDays,
-      refundAmount,
-      dailyRate: Math.round(totalMonthlyAmount / totalDaysInMonth),
-      hasRefund: refundAmount > 0
-    };
-  },
-
-  // Generate initial invoice for new student (prorated if mid-month)
-  async generateInitialInvoice(student) {
+  // Get monthly billing statistics
+  async getMonthlyStats() {
     try {
-      const enrollmentDate = student.enrollmentDate;
-      const enrollDate = new Date(enrollmentDate);
-      
-      // Calculate total monthly fee
-      const totalMonthlyFee = student.baseMonthlyFee + student.laundryFee + student.foodFee;
-      
-      // Calculate prorated amounts
-      const baseFeeProration = this.calculateProratedAmount(student.baseMonthlyFee, enrollmentDate);
-      const laundryFeeProration = this.calculateProratedAmount(student.laundryFee, enrollmentDate);
-      const foodFeeProration = this.calculateProratedAmount(student.foodFee, enrollmentDate);
-      
-      const totalProratedAmount = baseFeeProration.proratedAmount + 
-                                 laundryFeeProration.proratedAmount + 
-                                 foodFeeProration.proratedAmount;
-      
-      // Create invoice description
-      const monthYear = enrollDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      const description = baseFeeProration.isProrated 
-        ? `${monthYear} - Prorated (${baseFeeProration.remainingDays}/${baseFeeProration.totalDaysInMonth} days)`
-        : `${monthYear} - Full Month`;
-      
-      // Generate invoice
-      const invoiceData = {
-        studentId: student.id,
-        month: monthYear,
-        description: description,
-        baseFee: baseFeeProration.proratedAmount,
-        laundryFee: laundryFeeProration.proratedAmount,
-        foodFee: foodFeeProration.proratedAmount,
-        total: totalProratedAmount,
-        isProrated: baseFeeProration.isProrated,
-        proratedDays: baseFeeProration.remainingDays,
-        totalDays: baseFeeProration.totalDaysInMonth,
-        previousDue: 0,
-        discount: 0,
-        dueDate: new Date(enrollDate.getFullYear(), enrollDate.getMonth() + 1, 10).toISOString().split('T')[0] // 10th of next month
-      };
-      
-      const invoice = await invoiceService.createInvoice(invoiceData);
-      
-      // Add ledger entry
-      await ledgerService.addLedgerEntry({
-        studentId: student.id,
-        type: 'Invoice',
-        description: `Initial invoice - ${description}`,
-        debit: totalProratedAmount,
-        credit: 0,
-        referenceId: invoice.id
+      console.log("📊 Fetching monthly billing stats from API...");
+      const result = await apiRequest("/billing/monthly-stats");
+      console.log("✅ Monthly billing stats fetched successfully");
+      return result;
+    } catch (error) {
+      console.error("❌ Error fetching monthly billing stats:", error);
+      throw error;
+    }
+  },
+
+  // Generate monthly invoices for all active students
+  async generateMonthlyInvoices(month, year, dueDate) {
+    try {
+      console.log(`📋 Generating monthly invoices for ${month}/${year}...`);
+      const result = await apiRequest("/billing/generate-monthly", {
+        method: "POST",
+        body: JSON.stringify({ month, year, dueDate }),
       });
-
-      // Send invoice notification via Kaha App
-      await notificationService.notifyNewInvoice(
-        student.id,
-        description,
-        totalProratedAmount
-      );
-      
-      console.log(`Initial invoice generated for ${student.name}:`, {
-        amount: totalProratedAmount,
-        isProrated: baseFeeProration.isProrated,
-        days: `${baseFeeProration.remainingDays}/${baseFeeProration.totalDaysInMonth}`
-      });
-      
-      return invoice;
+      console.log("✅ Monthly invoices generated successfully");
+      return result;
     } catch (error) {
-      console.error('Error generating initial invoice:', error);
+      console.error("❌ Error generating monthly invoices:", error);
       throw error;
     }
   },
 
-  // Generate monthly invoices for all active students (called on 1st of every month)
-  async generateMonthlyInvoices(targetDate = new Date()) {
+  // Get billing schedule for upcoming months
+  async getBillingSchedule(months = 6) {
     try {
-      const students = await studentService.getStudents();
-      const activeStudents = students.filter(s => s.status === 'Active');
-      
-      const year = targetDate.getFullYear();
-      const month = targetDate.getMonth();
-      const monthYear = targetDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      
-      const generatedInvoices = [];
-      
-      for (const student of activeStudents) {
-        // Check if invoice already exists for this month
-        const existingInvoices = await invoiceService.getInvoicesByStudentId(student.id);
-        const monthlyInvoiceExists = existingInvoices.some(inv => 
-          inv.month === monthYear && !inv.isProrated
-        );
-        
-        if (monthlyInvoiceExists) {
-          console.log(`Invoice already exists for ${student.name} for ${monthYear}`);
-          continue;
-        }
-        
-        // Calculate total monthly fee
-        const totalMonthlyFee = student.baseMonthlyFee + student.laundryFee + student.foodFee;
-        
-        // Get previous outstanding balance
-        const previousDue = student.currentBalance || 0;
-        
-        // Create invoice
-        const invoiceData = {
-          studentId: student.id,
-          month: monthYear,
-          description: `${monthYear} - Monthly Charges`,
-          baseFee: student.baseMonthlyFee,
-          laundryFee: student.laundryFee,
-          foodFee: student.foodFee,
-          total: totalMonthlyFee + previousDue,
-          previousDue: previousDue,
-          discount: 0,
-          isProrated: false,
-          dueDate: new Date(year, month, 10).toISOString().split('T')[0] // 10th of current month
-        };
-        
-        const invoice = await invoiceService.createInvoice(invoiceData);
-        
-        // Add ledger entry
-        await ledgerService.addLedgerEntry({
-          studentId: student.id,
-          type: 'Invoice',
-          description: `Monthly invoice - ${monthYear}`,
-          debit: totalMonthlyFee,
-          credit: 0,
-          referenceId: invoice.id
-        });
-        
-        // Update student balance
-        await studentService.updateStudent(student.id, {
-          currentBalance: (student.currentBalance || 0) + totalMonthlyFee
-        });
-        
-        generatedInvoices.push(invoice);
-        console.log(`Monthly invoice generated for ${student.name}: ₨${totalMonthlyFee.toLocaleString()}`);
-      }
-      
-      console.log(`Generated ${generatedInvoices.length} monthly invoices for ${monthYear}`);
-      return generatedInvoices;
+      console.log(`📅 Fetching billing schedule for ${months} months...`);
+      const result = await apiRequest(`/billing/schedule?months=${months}`);
+      console.log("✅ Billing schedule fetched successfully");
+      return result;
     } catch (error) {
-      console.error('Error generating monthly invoices:', error);
+      console.error("❌ Error fetching billing schedule:", error);
       throw error;
     }
   },
 
-  // Simulate automatic monthly billing (in real app, this would be a cron job)
-  async scheduleMonthlyBilling() {
-    const today = new Date();
-    const isFirstOfMonth = today.getDate() === 1;
-    
-    if (isFirstOfMonth) {
-      console.log('🗓️ First of the month - Generating monthly invoices...');
-      return await this.generateMonthlyInvoices(today);
-    } else {
-      console.log(`Today is ${today.getDate()}th - Monthly billing runs on 1st of every month`);
-      return [];
-    }
-  },
-
-  // Manual trigger for monthly billing (for testing)
-  async triggerMonthlyBilling(targetMonth, targetYear) {
-    const targetDate = new Date(targetYear, targetMonth - 1, 1); // Month is 0-indexed
-    console.log(`🔧 Manually triggering monthly billing for ${targetDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`);
-    return await this.generateMonthlyInvoices(targetDate);
-  },
-
-  // Get billing summary for a student
-  async getStudentBillingSummary(studentId) {
+  // Preview billing for a specific month
+  async previewMonthlyBilling(month, year) {
     try {
-      const student = await studentService.getStudentById(studentId);
-      const invoices = await invoiceService.getInvoicesByStudentId(studentId);
-      const ledgerEntries = await ledgerService.getLedgerByStudentId(studentId);
-      
-      const totalInvoiced = invoices.reduce((sum, inv) => sum + inv.total, 0);
-      const totalPaid = ledgerEntries
-        .filter(entry => entry.type === 'Payment')
-        .reduce((sum, entry) => sum + (entry.credit || 0), 0);
-      
-      return {
-        student: student,
-        totalInvoiced: totalInvoiced,
-        totalPaid: totalPaid,
-        currentBalance: student.currentBalance || 0,
-        advanceBalance: student.advanceBalance || 0,
-        invoiceCount: invoices.length,
-        lastInvoiceDate: invoices.length > 0 ? invoices[invoices.length - 1].issueDate : null
-      };
+      console.log(`👀 Previewing billing for ${month}/${year}...`);
+      const result = await apiRequest(`/billing/preview/${month}/${year}`);
+      console.log("✅ Billing preview fetched successfully");
+      return result;
     } catch (error) {
-      console.error('Error getting billing summary:', error);
+      console.error("❌ Error fetching billing preview:", error);
       throw error;
     }
+  },
+
+  // Get students ready for billing
+  async getStudentsReadyForBilling() {
+    try {
+      console.log("👥 Fetching students ready for billing...");
+      const result = await apiRequest("/billing/students-ready");
+      console.log("✅ Students ready for billing fetched successfully");
+      return result;
+    } catch (error) {
+      console.error("❌ Error fetching students ready for billing:", error);
+      throw error;
+    }
+  },
+
+  // Get billing history
+  async getBillingHistory(page = 1, limit = 20) {
+    try {
+      console.log(`📜 Fetching billing history (page ${page})...`);
+      const result = await apiRequest(`/billing/history?page=${page}&limit=${limit}`);
+      console.log("✅ Billing history fetched successfully");
+      return result;
+    } catch (error) {
+      console.error("❌ Error fetching billing history:", error);
+      throw error;
+    }
+  },
+
+  // Generate current month invoices
+  async generateCurrentMonthInvoices() {
+    const currentDate = new Date();
+    const month = currentDate.getMonth();
+    const year = currentDate.getFullYear();
+    const dueDate = new Date(year, month, 15); // Due on 15th of the month
+
+    return await this.generateMonthlyInvoices(month, year, dueDate);
+  },
+
+  // Generate next month invoices
+  async generateNextMonthInvoices() {
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const month = nextMonth.getMonth();
+    const year = nextMonth.getFullYear();
+    const dueDate = new Date(year, month, 15); // Due on 15th of the month
+
+    return await this.generateMonthlyInvoices(month, year, dueDate);
+  },
+
+  // Preview current month billing
+  async previewCurrentMonthBilling() {
+    const currentDate = new Date();
+    const month = currentDate.getMonth();
+    const year = currentDate.getFullYear();
+
+    return await this.previewMonthlyBilling(month, year);
+  },
+
+  // Preview next month billing
+  async previewNextMonthBilling() {
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    const month = nextMonth.getMonth();
+    const year = nextMonth.getFullYear();
+
+    return await this.previewMonthlyBilling(month, year);
   }
 };

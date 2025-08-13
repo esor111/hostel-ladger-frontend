@@ -290,4 +290,63 @@ export class PaymentsService {
     const timestamp = Date.now().toString().slice(-6);
     return `RCP-${year}${month}-${timestamp}`;
   }
+
+  async getPaymentMethods() {
+    return [
+      { id: 'cash', name: 'Cash', description: 'Cash payment' },
+      { id: 'bank_transfer', name: 'Bank Transfer', description: 'Direct bank transfer' },
+      { id: 'cheque', name: 'Cheque', description: 'Cheque payment' },
+      { id: 'online', name: 'Online Payment', description: 'Online payment gateway' },
+      { id: 'esewa', name: 'eSewa', description: 'eSewa digital wallet' },
+      { id: 'khalti', name: 'Khalti', description: 'Khalti digital wallet' },
+      { id: 'ime_pay', name: 'IME Pay', description: 'IME Pay digital wallet' }
+    ];
+  }
+
+  async createBulk(bulkPaymentDto: any) {
+    return await this.processBulkPayments(bulkPaymentDto.payments);
+  }
+
+  async remove(id: string) {
+    const payment = await this.findOne(id);
+    
+    // Soft delete - mark as cancelled
+    await this.paymentRepository.update(id, {
+      status: PaymentStatus.CANCELLED
+    });
+
+    return {
+      success: true,
+      message: 'Payment cancelled successfully',
+      paymentId: id
+    };
+  }
+
+  async getMonthlyPaymentSummary(months: number = 12) {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - months);
+
+    const monthlyData = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .select([
+        'EXTRACT(YEAR FROM payment.paymentDate) as year',
+        'EXTRACT(MONTH FROM payment.paymentDate) as month',
+        'COUNT(*) as count',
+        'SUM(payment.amount) as amount'
+      ])
+      .where('payment.paymentDate >= :startDate', { startDate })
+      .andWhere('payment.paymentDate <= :endDate', { endDate })
+      .andWhere('payment.status = :status', { status: PaymentStatus.COMPLETED })
+      .groupBy('EXTRACT(YEAR FROM payment.paymentDate), EXTRACT(MONTH FROM payment.paymentDate)')
+      .orderBy('year, month')
+      .getRawMany();
+
+    // Format the data
+    return monthlyData.map(data => ({
+      month: new Date(data.year, data.month - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      count: parseInt(data.count),
+      amount: parseFloat(data.amount) || 0
+    }));
+  }
 }

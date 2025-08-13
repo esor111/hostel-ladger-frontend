@@ -18,6 +18,8 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { SeedModule } from './database/seeds/seed.module';
 import { AdminChargesModule } from './admin-charges/admin-charges.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { BillingModule } from './billing/billing.module';
 
 @Module({
   imports: [
@@ -45,6 +47,8 @@ import { AdminChargesModule } from './admin-charges/admin-charges.module';
     AnalyticsModule,
     SeedModule,
     AdminChargesModule,
+    DashboardModule,
+    BillingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
