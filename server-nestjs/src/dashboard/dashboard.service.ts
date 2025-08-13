@@ -101,7 +101,7 @@ export class DashboardService {
     const recentInvoices = await this.invoiceRepository
       .createQueryBuilder('invoice')
       .leftJoinAndSelect('invoice.student', 'student')
-      .orderBy('invoice.generatedDate', 'DESC')
+      .orderBy('invoice.createdAt', 'DESC')
       .limit(5)
       .getMany();
 
@@ -197,7 +197,7 @@ export class DashboardService {
       .createQueryBuilder('invoice')
       .leftJoinAndSelect('invoice.student', 'student')
       .leftJoinAndSelect('student.room', 'room')
-      .where('invoice.status = :status', { status: 'overdue' })
+      .where('invoice.status = :status', { status: InvoiceStatus.OVERDUE })
       .orderBy('invoice.dueDate', 'ASC')
       .getMany();
 

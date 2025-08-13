@@ -35,8 +35,8 @@ export class BillingService {
     // Get current month invoices
     const currentMonthInvoices = await this.invoiceRepository
       .createQueryBuilder('invoice')
-      .where('invoice.generatedDate >= :startDate', { startDate: firstDayOfMonth })
-      .andWhere('invoice.generatedDate <= :endDate', { endDate: lastDayOfMonth })
+      .where('invoice.createdAt >= :startDate', { startDate: firstDayOfMonth })
+      .andWhere('invoice.createdAt <= :endDate', { endDate: lastDayOfMonth })
       .getMany();
 
     const currentMonthAmount = currentMonthInvoices.reduce((sum, invoice) => sum + invoice.total, 0);
@@ -213,7 +213,7 @@ export class BillingService {
       const monthlyTotal = activeCharges.reduce((sum, charge) => sum + charge.amount, 0);
       
       // Get last invoice date (placeholder - will implement when invoice relations are set up)
-      const lastInvoiceDate = null; // student.invoices?.[0]?.generatedDate || null;
+      const lastInvoiceDate = null; // student.invoices?.[0]?.createdAt || null;
 
       return {
         id: student.id,
@@ -235,7 +235,7 @@ export class BillingService {
       .createQueryBuilder('invoice')
       .leftJoinAndSelect('invoice.student', 'student')
       .leftJoinAndSelect('student.room', 'room')
-      .orderBy('invoice.generatedDate', 'DESC')
+      .orderBy('invoice.createdAt', 'DESC')
       .skip(offset)
       .take(limit)
       .getManyAndCount();
