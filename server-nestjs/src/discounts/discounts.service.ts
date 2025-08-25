@@ -130,9 +130,12 @@ export class DiscountsService {
       }
     }
 
+    // Generate custom discount ID if not provided
+    const discountId = createDiscountDto.id || this.generateDiscountId();
+
     // Create discount entity
     const discount = this.discountRepository.create({
-      id: createDiscountDto.id || this.generateDiscountId(),
+      id: discountId,
       studentId: createDiscountDto.studentId,
       discountTypeId: discountType?.id,
       amount: finalAmount,

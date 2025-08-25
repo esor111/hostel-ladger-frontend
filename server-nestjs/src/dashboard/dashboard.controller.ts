@@ -14,12 +14,7 @@ export class DashboardController {
     description: "Dashboard statistics retrieved successfully",
   })
   async getDashboardStats() {
-    const stats = await this.dashboardService.getDashboardStats();
-
-    return {
-      status: HttpStatus.OK,
-      data: stats,
-    };
+    return await this.dashboardService.getDashboardStats();
   }
 
   @Get("recent-activity")
@@ -28,13 +23,9 @@ export class DashboardController {
     status: 200,
     description: "Recent activities retrieved successfully",
   })
-  async getRecentActivity(@Query("limit") limit: number = 10) {
-    const activities = await this.dashboardService.getRecentActivity(limit);
-
-    return {
-      status: HttpStatus.OK,
-      data: activities,
-    };
+  async getRecentActivity(@Query("limit") limit: string) {
+    const limitNum = limit ? parseInt(limit) : 10;
+    return await this.dashboardService.getRecentActivity(limitNum);
   }
 
   @Get("checked-out-dues")

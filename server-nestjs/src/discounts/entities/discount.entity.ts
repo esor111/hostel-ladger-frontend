@@ -1,7 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn, Index } from 'typeorm';
-import { BaseEntity } from '../../common/entities/base.entity';
 import { Student } from '../../students/entities/student.entity';
 import { DiscountType } from './discount-type.entity';
+import { BaseEntityWithCustomId } from '../../common/entities/base.entity';
 
 export enum DiscountStatus {
   ACTIVE = 'active',
@@ -21,7 +21,7 @@ export enum DiscountApplication {
 @Index(['status'])
 @Index(['date'])
 @Index(['discountTypeId'])
-export class Discount extends BaseEntity {
+export class Discount extends BaseEntityWithCustomId {
   @Column({ name: 'student_id' })
   studentId: string;
 

@@ -6,13 +6,15 @@ import { Student } from '../students/entities/student.entity';
 import { LedgerEntry } from '../ledger/entities/ledger-entry.entity';
 import { Payment } from '../payments/entities/payment.entity';
 import { Invoice } from '../invoices/entities/invoice.entity';
+import { BookingRequest } from '../bookings/entities/booking-request.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([
     Student,
     LedgerEntry,
     Payment,
-    Invoice
+    Invoice,
+    BookingRequest
   ])],
   controllers: [DashboardController],
   providers: [DashboardService],

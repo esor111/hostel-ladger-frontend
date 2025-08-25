@@ -353,9 +353,10 @@ export const PaymentManagement = () => {
                   <SelectItem value="Cash">💵 Cash</SelectItem>
                   <SelectItem value="Bank Transfer">🏦 Bank Transfer</SelectItem>
                   <SelectItem value="Card">💳 Card</SelectItem>
-                  <SelectItem value="UPI">📱 UPI</SelectItem>
+        
                   <SelectItem value="Online">💻 Online</SelectItem>
                   <SelectItem value="Cheque">📝 Cheque</SelectItem>
+                  <SelectItem value="Mobile Wallet">📲 Mobile Wallet</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -493,6 +494,7 @@ export const PaymentManagement = () => {
                   <SelectItem value="UPI">📱 UPI</SelectItem>
                   <SelectItem value="Online">💻 Online</SelectItem>
                   <SelectItem value="Cheque">📝 Cheque</SelectItem>
+                  <SelectItem value="Mobile Wallet">📲 Mobile Wallet</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -616,6 +618,7 @@ export const PaymentManagement = () => {
                     <SelectItem value="UPI">📱 UPI</SelectItem>
                     <SelectItem value="Online">💻 Online</SelectItem>
                     <SelectItem value="Cheque">📝 Cheque</SelectItem>
+                    <SelectItem value="Mobile Wallet">📲 Mobile Wallet</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -722,6 +725,7 @@ export const PaymentManagement = () => {
                             <SelectItem value="UPI">UPI</SelectItem>
                             <SelectItem value="Online">Online</SelectItem>
                             <SelectItem value="Cheque">Cheque</SelectItem>
+                            <SelectItem value="Mobile Wallet">Mobile Wallet</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
