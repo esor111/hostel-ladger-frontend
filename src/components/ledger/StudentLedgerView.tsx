@@ -104,9 +104,10 @@ export const StudentLedgerView = () => {
     }
   };
 
-  const currentBalance = ledgerEntries[ledgerEntries.length - 1]?.balance || 0;
+  // Calculate current balance properly from all entries
   const totalDebits = ledgerEntries.reduce((sum, entry) => sum + parseFloat(entry.debit || 0), 0);
   const totalCredits = ledgerEntries.reduce((sum, entry) => sum + parseFloat(entry.credit || 0), 0);
+  const currentBalance = totalDebits - totalCredits;
 
   return (
     <div className="space-y-6">
@@ -289,7 +290,7 @@ export const StudentLedgerView = () => {
                       </TableCell>
                       <TableCell className="text-right font-bold">
                         <span className={entry.balance >= 0 ? 'text-red-600' : 'text-green-600'}>
-                          ₨{Math.abs(entry.balance).toLocaleString()}
+                          ₨{Math.abs(parseFloat(entry.balance || 0)).toLocaleString()}
                           {entry.balance >= 0 ? ' Dr' : ' Cr'}
                         </span>
                       </TableCell>

@@ -20,59 +20,59 @@ export class LedgerService {
     private paymentRepository: Repository<Payment>,
     @InjectRepository(Discount)
     private discountRepository: Repository<Discount>,
-  ) {}
+  ) { }
 
   async findAll(filters: any = {}) {
-    const { 
-      page = 1, 
-      limit = 50, 
-      studentId, 
+    const {
+      page = 1,
+      limit = 50,
+      studentId,
       type,
       dateFrom,
       dateTo,
-      search 
+      search
     } = filters;
-    
+
     const queryBuilder = this.ledgerRepository.createQueryBuilder('ledger')
       .leftJoinAndSelect('ledger.student', 'student');
-    
+
     // Apply filters
     if (studentId) {
       queryBuilder.andWhere('ledger.studentId = :studentId', { studentId });
     }
-    
+
     if (type) {
       queryBuilder.andWhere('ledger.type = :type', { type });
     }
-    
+
     if (dateFrom) {
       queryBuilder.andWhere('ledger.date >= :dateFrom', { dateFrom });
     }
-    
+
     if (dateTo) {
       queryBuilder.andWhere('ledger.date <= :dateTo', { dateTo });
     }
-    
+
     if (search) {
       queryBuilder.andWhere(
         '(student.name ILIKE :search OR ledger.description ILIKE :search)',
         { search: `%${search}%` }
       );
     }
-    
+
     // Apply pagination
     const offset = (page - 1) * limit;
     queryBuilder.skip(offset).take(limit);
-    
+
     // Order by date and entry number
     queryBuilder.orderBy('ledger.date', 'DESC')
-                .addOrderBy('ledger.entryNumber', 'DESC');
-    
+      .addOrderBy('ledger.entryNumber', 'DESC');
+
     const [entries, total] = await queryBuilder.getManyAndCount();
-    
+
     // Transform to API response format
     const transformedItems = entries.map(entry => this.transformToApiResponse(entry));
-    
+
     return {
       items: transformedItems,
       pagination: {
@@ -90,7 +90,7 @@ export class LedgerService {
       relations: ['student'],
       order: { date: 'DESC', entryNumber: 'DESC' }
     });
-    
+
     return entries.map(entry => this.transformToApiResponse(entry));
   }
 
@@ -107,7 +107,7 @@ export class LedgerService {
     const totalDebits = parseFloat(result?.totalDebits) || 0;
     const totalCredits = parseFloat(result?.totalCredits) || 0;
     const netBalance = totalDebits - totalCredits;
-    
+
     return {
       studentId,
       currentBalance: netBalance,
@@ -126,26 +126,27 @@ export class LedgerService {
 
     // Get current balance
     const currentBalance = await this.getStudentBalance(invoice.studentId);
-    const newBalance = currentBalance.currentBalance + parseFloat(invoice.total?.toString() || '0');
-    
+    const invoiceAmount = parseFloat(invoice.total?.toString() || '0');
+    const newBalance = currentBalance.currentBalance + invoiceAmount;
+
     const entry = this.ledgerRepository.create({
       studentId: invoice.studentId,
       date: new Date(),
       type: LedgerEntryType.INVOICE,
       description: `Invoice for ${invoice.month} - ${invoice.student?.name}`,
       referenceId: invoice.id,
-      debit: parseFloat(invoice.total?.toString() || '0'),
+      debit: invoiceAmount,
       credit: 0,
-      balance: Math.abs(newBalance),
+      balance: newBalance, // Store the actual running balance, not absolute value
       balanceType: newBalance > 0 ? BalanceType.DR : newBalance < 0 ? BalanceType.CR : BalanceType.NIL,
       entryNumber: await this.getNextEntryNumber()
     });
 
     const savedEntry = await this.ledgerRepository.save(entry);
-    
+
     // Update student's current balance
     await this.updateStudentBalance(invoice.studentId);
-    
+
     return this.transformToApiResponse(savedEntry);
   }
 
@@ -157,8 +158,9 @@ export class LedgerService {
 
     // Get current balance
     const currentBalance = await this.getStudentBalance(payment.studentId);
-    const newBalance = currentBalance.currentBalance - parseFloat(payment.amount?.toString() || '0');
-    
+    const paymentAmount = parseFloat(payment.amount?.toString() || '0');
+    const newBalance = currentBalance.currentBalance - paymentAmount;
+
     const entry = this.ledgerRepository.create({
       studentId: payment.studentId,
       date: payment.paymentDate,
@@ -166,17 +168,17 @@ export class LedgerService {
       description: `Payment received - ${payment.paymentMethod} - ${payment.student?.name}`,
       referenceId: payment.id,
       debit: 0,
-      credit: parseFloat(payment.amount?.toString() || '0'),
-      balance: Math.abs(newBalance),
+      credit: paymentAmount,
+      balance: newBalance, // Store the actual running balance, not absolute value
       balanceType: newBalance > 0 ? BalanceType.DR : newBalance < 0 ? BalanceType.CR : BalanceType.NIL,
       entryNumber: await this.getNextEntryNumber()
     });
 
     const savedEntry = await this.ledgerRepository.save(entry);
-    
+
     // Update student's current balance
     await this.updateStudentBalance(payment.studentId);
-    
+
     return this.transformToApiResponse(savedEntry);
   }
 
@@ -188,8 +190,9 @@ export class LedgerService {
 
     // Get current balance
     const currentBalance = await this.getStudentBalance(discount.studentId);
-    const newBalance = currentBalance.currentBalance - parseFloat(discount.amount?.toString() || '0');
-    
+    const discountAmount = parseFloat(discount.amount?.toString() || '0');
+    const newBalance = currentBalance.currentBalance - discountAmount;
+
     const entry = this.ledgerRepository.create({
       studentId: discount.studentId,
       date: discount.date,
@@ -197,18 +200,18 @@ export class LedgerService {
       description: `Discount applied - ${discount.reason} - ${discount.student?.name}`,
       referenceId: discount.id,
       debit: 0,
-      credit: parseFloat(discount.amount?.toString() || '0'),
-      balance: Math.abs(newBalance),
+      credit: discountAmount,
+      balance: newBalance, // Store the actual running balance, not absolute value
       balanceType: newBalance > 0 ? BalanceType.DR : newBalance < 0 ? BalanceType.CR : BalanceType.NIL,
       entryNumber: await this.getNextEntryNumber(),
 
     });
 
     const savedEntry = await this.ledgerRepository.save(entry);
-    
+
     // Update student's current balance
     await this.updateStudentBalance(discount.studentId);
-    
+
     return this.transformToApiResponse(savedEntry);
   }
 
@@ -220,27 +223,29 @@ export class LedgerService {
 
     // Get current balance
     const currentBalance = await this.getStudentBalance(studentId);
-    const adjustmentAmount = type === 'debit' ? amount : -amount;
-    const newBalance = currentBalance.currentBalance + adjustmentAmount;
-    
+    const adjustmentAmount = parseFloat(amount?.toString() || '0');
+    const newBalance = type === 'debit'
+      ? currentBalance.currentBalance + adjustmentAmount
+      : currentBalance.currentBalance - adjustmentAmount;
+
     const entry = this.ledgerRepository.create({
       studentId,
       date: new Date(),
       type: LedgerEntryType.ADJUSTMENT,
       description: `${type.toUpperCase()} Adjustment - ${description} - ${student.name}`,
       referenceId: null,
-      debit: type === 'debit' ? amount : 0,
-      credit: type === 'credit' ? amount : 0,
-      balance: Math.abs(newBalance),
+      debit: type === 'debit' ? adjustmentAmount : 0,
+      credit: type === 'credit' ? adjustmentAmount : 0,
+      balance: newBalance, // Store the actual running balance, not absolute value
       balanceType: newBalance > 0 ? BalanceType.DR : newBalance < 0 ? BalanceType.CR : BalanceType.NIL,
       entryNumber: await this.getNextEntryNumber()
     });
 
     const savedEntry = await this.ledgerRepository.save(entry);
-    
+
     // Update student's current balance
     await this.updateStudentBalance(studentId);
-    
+
     return this.transformToApiResponse(savedEntry);
   }
 
@@ -265,7 +270,7 @@ export class LedgerService {
     const currentBalance = await this.getStudentBalance(entry.studentId);
     const reversalAmount = entry.debit - entry.credit;
     const newBalance = currentBalance.currentBalance - reversalAmount;
-    
+
     const reversalEntry = this.ledgerRepository.create({
       studentId: entry.studentId,
       date: new Date(),
@@ -280,10 +285,10 @@ export class LedgerService {
     });
 
     const savedReversalEntry = await this.ledgerRepository.save(reversalEntry);
-    
+
     // Update student's current balance
     await this.updateStudentBalance(entry.studentId);
-    
+
     return {
       originalEntry: this.transformToApiResponse(entry),
       reversalEntry: this.transformToApiResponse(savedReversalEntry)
@@ -292,7 +297,7 @@ export class LedgerService {
 
   async getStats() {
     const totalEntries = await this.ledgerRepository.count({ where: { isReversed: false } });
-    
+
     const balanceResult = await this.ledgerRepository
       .createQueryBuilder('ledger')
       .select('SUM(ledger.debit)', 'totalDebits')
