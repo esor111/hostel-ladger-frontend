@@ -67,7 +67,7 @@ export const DiscountManagement = () => {
   // Calculate totals
   const totalActiveDiscounts = discountHistory
     .filter(d => d.status === 'active')
-    .reduce((sum, d) => sum + d.amount, 0);
+    .reduce((sum, d) => sum + parseFloat(d.amount || 0), 0);
 
   const handleDiscountSubmit = async () => {
     if (!selectedStudent || !discountAmount || !discountReason) {

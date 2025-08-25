@@ -239,4 +239,68 @@ export class AdminChargesService {
       totalAppliedAmount: parseFloat(appliedAmount?.total || "0"),
     };
   }
+
+  async getOverdueStudents(): Promise<any[]> {
+    // Get students with overdue balances from ledger
+    const overdueStudents = await this.studentRepository
+      .createQueryBuilder('student')
+      .leftJoinAndSelect('student.room', 'room')
+      .leftJoin('student.ledgerEntries', 'ledger')
+      .select([
+        'student.id',
+        'student.name',
+        'student.phone',
+        'student.email',
+        'room.roomNumber',
+        'SUM(CASE WHEN ledger.balanceType = \'Dr\' THEN ledger.balance ELSE -ledger.balance END) as currentBalance'
+      ])
+      .where('student.status = :status', { status: 'Active' })
+      .groupBy('student.id, room.roomNumber')
+      .having('SUM(CASE WHEN ledger.balanceType = \'Dr\' THEN ledger.balance ELSE -ledger.balance END) > 0')
+      .getRawMany();
+
+    return overdueStudents.map(student => {
+      const balance = parseFloat(student.currentBalance) || 0;
+      const daysOverdue = Math.floor(balance / 100); // Rough calculation
+      const suggestedLateFee = Math.min(balance * 0.1, 500); // 10% of balance, max 500
+
+      return {
+        id: student.student_id,
+        name: student.student_name,
+        phone: student.student_phone,
+        email: student.student_email,
+        roomNumber: student.room_roomNumber,
+        currentBalance: balance,
+        daysOverdue: Math.max(1, daysOverdue),
+        suggestedLateFee: Math.round(suggestedLateFee)
+      };
+    });
+  }
+
+  async getTodaySummary(): Promise<{
+    totalCharges: number;
+    totalAmount: number;
+    studentsCharged: number;
+  }> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const todayCharges = await this.adminChargeRepository
+      .createQueryBuilder('charge')
+      .where('charge.createdAt >= :today', { today })
+      .andWhere('charge.createdAt < :tomorrow', { tomorrow })
+      .getMany();
+
+    const totalCharges = todayCharges.length;
+    const totalAmount = todayCharges.reduce((sum, charge) => sum + charge.amount, 0);
+    const studentsCharged = new Set(todayCharges.map(charge => charge.studentId)).size;
+
+    return {
+      totalCharges,
+      totalAmount,
+      studentsCharged
+    };
+  }
 }

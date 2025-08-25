@@ -53,5 +53,11 @@ export const dashboardService = {
   async getCurrentMonthRevenue() {
     const now = new Date();
     return this.getMonthlyRevenue(now.getFullYear(), now.getMonth() + 1);
+  },
+
+  // Get checked out students with dues
+  async getCheckedOutWithDues() {
+    const response = await apiRequest('/dashboard/checked-out-dues');
+    return response.data || response; // Handle both formats
   }
 };

@@ -280,7 +280,7 @@ export class DiscountsService {
       studentId: discount.studentId,
       studentName: discount.student?.name || '',
       room: discount.student?.room?.roomNumber || '',
-      amount: discount.amount,
+      amount: parseFloat(discount.amount?.toString() || '0'),
       reason: discount.reason,
       notes: discount.notes,
       appliedBy: discount.appliedBy,
@@ -291,8 +291,8 @@ export class DiscountsService {
       validFrom: discount.validFrom,
       validTo: discount.validTo,
       isPercentage: discount.isPercentage,
-      percentageValue: discount.percentageValue,
-      maxAmount: discount.maxAmount,
+      percentageValue: discount.percentageValue ? parseFloat(discount.percentageValue.toString()) : null,
+      maxAmount: discount.maxAmount ? parseFloat(discount.maxAmount.toString()) : null,
       createdAt: discount.createdAt,
       updatedAt: discount.updatedAt
     };

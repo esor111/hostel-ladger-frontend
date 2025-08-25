@@ -105,8 +105,8 @@ export const StudentLedgerView = () => {
   };
 
   const currentBalance = ledgerEntries[ledgerEntries.length - 1]?.balance || 0;
-  const totalDebits = ledgerEntries.reduce((sum, entry) => sum + entry.debit, 0);
-  const totalCredits = ledgerEntries.reduce((sum, entry) => sum + entry.credit, 0);
+  const totalDebits = ledgerEntries.reduce((sum, entry) => sum + parseFloat(entry.debit || 0), 0);
+  const totalCredits = ledgerEntries.reduce((sum, entry) => sum + parseFloat(entry.credit || 0), 0);
 
   return (
     <div className="space-y-6">

@@ -57,7 +57,8 @@ export const discountService = {
       const response = await apiRequest(endpoint);
       console.log("✅ Discounts API response:", response);
 
-      return response.result?.items || response || []; // Handle different response formats
+      // The apiRequest function already handles the response format
+      return response || []; // Response should already be the items array
     } catch (error) {
       console.error("❌ Error fetching discounts:", error);
       throw error;

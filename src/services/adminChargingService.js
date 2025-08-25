@@ -267,6 +267,88 @@ export const adminChargingService = {
     return typeLabels[chargeType] || chargeType;
   },
 
+  // Get overdue students
+  async getOverdueStudents() {
+    try {
+      console.log('📋 Fetching overdue students...');
+      const response = await apiRequest('/admin-charges/overdue-students');
+      const overdue = response.data || response;
+      console.log(`✅ Found ${overdue.length || 0} overdue students`);
+      return overdue;
+    } catch (error) {
+      console.error('❌ Error fetching overdue students:', error);
+      return [];
+    }
+  },
+
+  // Get today's charge summary
+  async getTodayChargeSummary() {
+    try {
+      console.log('📊 Fetching today\'s charge summary...');
+      const response = await apiRequest('/admin-charges/today-summary');
+      const summary = response.data || response;
+      console.log('✅ Today\'s charge summary fetched');
+      return summary;
+    } catch (error) {
+      console.error('❌ Error fetching today\'s summary:', error);
+      return {
+        totalCharges: 0,
+        totalAmount: 0,
+        studentsCharged: 0
+      };
+    }
+  },
+
+  // Add charge to student (legacy method for compatibility)
+  async addChargeToStudent(studentId, chargeData, createdBy = 'Admin') {
+    try {
+      console.log(`💰 Adding charge to student ${studentId}...`);
+      
+      const requestData = {
+        studentId: studentId,
+        title: this.getChargeTypeLabel(chargeData.type),
+        description: chargeData.description || this.getChargeTypeLabel(chargeData.type),
+        amount: parseFloat(chargeData.amount),
+        chargeType: 'one-time',
+        category: this.mapChargeTypeToCategory(chargeData.type),
+        adminNotes: chargeData.notes || '',
+        createdBy: createdBy
+      };
+
+      const result = await this.createCharge(requestData);
+      
+      // Apply the charge immediately
+      await this.applyCharge(result.id);
+      
+      return {
+        success: true,
+        description: requestData.description,
+        student: { name: 'Student' }, // Would need to fetch student data
+        charge: result
+      };
+
+    } catch (error) {
+      console.error('❌ Error adding charge to student:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  // Map charge type to category
+  mapChargeTypeToCategory(chargeType) {
+    const mapping = {
+      'late_fee': 'Late Fee',
+      'late_fee_overdue': 'Late Fee',
+      'damage_fee': 'Damage',
+      'cleaning_fee': 'Service',
+      'maintenance_fee': 'Maintenance',
+      'custom': 'Miscellaneous'
+    };
+    return mapping[chargeType] || 'Miscellaneous';
+  },
+
   // Format amount for display
   formatAmount(amount) {
     return new Intl.NumberFormat('en-US', {

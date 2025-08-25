@@ -97,23 +97,22 @@ export class LedgerService {
   async getStudentBalance(studentId: string) {
     const result = await this.ledgerRepository
       .createQueryBuilder('ledger')
-      .select('SUM(CASE WHEN ledger.balanceType = :dr THEN ledger.balance ELSE 0 END)', 'drBalance')
-      .addSelect('SUM(CASE WHEN ledger.balanceType = :cr THEN ledger.balance ELSE 0 END)', 'crBalance')
+      .select('SUM(ledger.debit)', 'totalDebits')
+      .addSelect('SUM(ledger.credit)', 'totalCredits')
       .addSelect('COUNT(*)', 'totalEntries')
       .where('ledger.studentId = :studentId', { studentId })
       .andWhere('ledger.isReversed = :isReversed', { isReversed: false })
-      .setParameters({ dr: BalanceType.DR, cr: BalanceType.CR })
       .getRawOne();
 
-    const drBalance = parseFloat(result?.drBalance) || 0;
-    const crBalance = parseFloat(result?.crBalance) || 0;
-    const netBalance = drBalance - crBalance;
+    const totalDebits = parseFloat(result?.totalDebits) || 0;
+    const totalCredits = parseFloat(result?.totalCredits) || 0;
+    const netBalance = totalDebits - totalCredits;
     
     return {
       studentId,
       currentBalance: netBalance,
-      debitBalance: drBalance,
-      creditBalance: crBalance,
+      debitBalance: totalDebits,
+      creditBalance: totalCredits,
       balanceType: netBalance > 0 ? BalanceType.DR : netBalance < 0 ? BalanceType.CR : BalanceType.NIL,
       totalEntries: parseInt(result?.totalEntries) || 0
     };
@@ -127,7 +126,7 @@ export class LedgerService {
 
     // Get current balance
     const currentBalance = await this.getStudentBalance(invoice.studentId);
-    const newBalance = currentBalance.currentBalance + invoice.total;
+    const newBalance = currentBalance.currentBalance + parseFloat(invoice.total?.toString() || '0');
     
     const entry = this.ledgerRepository.create({
       studentId: invoice.studentId,
@@ -135,7 +134,7 @@ export class LedgerService {
       type: LedgerEntryType.INVOICE,
       description: `Invoice for ${invoice.month} - ${invoice.student?.name}`,
       referenceId: invoice.id,
-      debit: invoice.total,
+      debit: parseFloat(invoice.total?.toString() || '0'),
       credit: 0,
       balance: Math.abs(newBalance),
       balanceType: newBalance > 0 ? BalanceType.DR : newBalance < 0 ? BalanceType.CR : BalanceType.NIL,
@@ -158,7 +157,7 @@ export class LedgerService {
 
     // Get current balance
     const currentBalance = await this.getStudentBalance(payment.studentId);
-    const newBalance = currentBalance.currentBalance - payment.amount;
+    const newBalance = currentBalance.currentBalance - parseFloat(payment.amount?.toString() || '0');
     
     const entry = this.ledgerRepository.create({
       studentId: payment.studentId,
@@ -167,7 +166,7 @@ export class LedgerService {
       description: `Payment received - ${payment.paymentMethod} - ${payment.student?.name}`,
       referenceId: payment.id,
       debit: 0,
-      credit: payment.amount,
+      credit: parseFloat(payment.amount?.toString() || '0'),
       balance: Math.abs(newBalance),
       balanceType: newBalance > 0 ? BalanceType.DR : newBalance < 0 ? BalanceType.CR : BalanceType.NIL,
       entryNumber: await this.getNextEntryNumber()
@@ -189,7 +188,7 @@ export class LedgerService {
 
     // Get current balance
     const currentBalance = await this.getStudentBalance(discount.studentId);
-    const newBalance = currentBalance.currentBalance - discount.amount;
+    const newBalance = currentBalance.currentBalance - parseFloat(discount.amount?.toString() || '0');
     
     const entry = this.ledgerRepository.create({
       studentId: discount.studentId,
@@ -198,7 +197,7 @@ export class LedgerService {
       description: `Discount applied - ${discount.reason} - ${discount.student?.name}`,
       referenceId: discount.id,
       debit: 0,
-      credit: discount.amount,
+      credit: parseFloat(discount.amount?.toString() || '0'),
       balance: Math.abs(newBalance),
       balanceType: newBalance > 0 ? BalanceType.DR : newBalance < 0 ? BalanceType.CR : BalanceType.NIL,
       entryNumber: await this.getNextEntryNumber(),
@@ -341,9 +340,9 @@ export class LedgerService {
       type: entry.type,
       description: entry.description,
       referenceId: entry.referenceId,
-      debit: entry.debit,
-      credit: entry.credit,
-      balance: entry.balance,
+      debit: parseFloat(entry.debit?.toString() || '0'),
+      credit: parseFloat(entry.credit?.toString() || '0'),
+      balance: parseFloat(entry.balance?.toString() || '0'),
       balanceType: entry.balanceType,
       notes: entry.notes,
       createdAt: entry.createdAt

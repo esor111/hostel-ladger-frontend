@@ -32,20 +32,27 @@ export const Dashboard = memo(() => {
         // Load dashboard data from API
         try {
           const [statsData, checkedOutData] = await Promise.all([
-            dashboardService.getDashboardStats(),
+            dashboardService.getStats(),
             dashboardService.getCheckedOutWithDues()
           ]);
           
           setDashboardStats({
             totalStudents: statsData.totalStudents || 0,
-            totalCollected: statsData.totalCollected || 0,
-            totalDues: statsData.totalDues || 0,
-            thisMonthCollection: statsData.thisMonthCollection || 0,
-            advanceBalances: statsData.advanceBalances || 0,
-            overdueInvoices: statsData.overdueInvoices || 0
+            totalCollected: statsData.monthlyRevenue?.amount || 0,
+            totalDues: 0, // Will be calculated from checked out students
+            thisMonthCollection: statsData.monthlyRevenue?.amount || 0,
+            advanceBalances: 0,
+            overdueInvoices: statsData.pendingPayments || 0
           });
           
           setCheckedOutWithDues(checkedOutData || []);
+          
+          // Calculate total dues from checked out students
+          const totalDues = (checkedOutData || []).reduce((sum, student) => sum + (student.outstandingDues || 0), 0);
+          setDashboardStats(prev => ({
+            ...prev,
+            totalDues
+          }));
           
         } catch (apiError) {
           console.error('Dashboard API failed, using fallback data:', apiError);

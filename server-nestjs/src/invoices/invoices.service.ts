@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Invoice, InvoiceStatus } from './entities/invoice.entity';
 import { InvoiceItem } from './entities/invoice-item.entity';
+import { LedgerService } from '../ledger/ledger.service';
 
 @Injectable()
 export class InvoicesService {
@@ -11,6 +12,7 @@ export class InvoicesService {
     private invoiceRepository: Repository<Invoice>,
     @InjectRepository(InvoiceItem)
     private invoiceItemRepository: Repository<InvoiceItem>,
+    private ledgerService: LedgerService,
   ) {}
 
   async findAll(filters: any = {}) {
@@ -107,6 +109,14 @@ export class InvoicesService {
     // Create invoice items if provided
     if (createInvoiceDto.items && createInvoiceDto.items.length > 0) {
       await this.createInvoiceItems(savedInvoice.id, createInvoiceDto.items);
+    }
+
+    // Create ledger entry for the invoice
+    try {
+      await this.ledgerService.createInvoiceEntry(savedInvoice);
+    } catch (error) {
+      console.error('Failed to create ledger entry for invoice:', error);
+      // Don't fail the invoice creation if ledger entry fails
     }
 
     return this.findOne(savedInvoice.id);

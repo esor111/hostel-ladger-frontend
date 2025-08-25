@@ -95,6 +95,42 @@ export class AdminChargesController {
     }
   }
 
+  @Get('overdue-students')
+  async getOverdueStudents() {
+    try {
+      const result = await this.adminChargesService.getOverdueStudents();
+      return {
+        success: true,
+        data: result,
+        message: 'Overdue students retrieved successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR
+      };
+    }
+  }
+
+  @Get('today-summary')
+  async getTodaySummary() {
+    try {
+      const result = await this.adminChargesService.getTodaySummary();
+      return {
+        success: true,
+        data: result,
+        message: 'Today\'s summary retrieved successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.message,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR
+      };
+    }
+  }
+
   @Get('student/:studentId')
   async getChargesByStudent(@Param('studentId') studentId: string) {
     try {
