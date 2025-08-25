@@ -48,14 +48,17 @@ export class Room extends BaseEntity {
   @Column({ type: 'int', default: 0 })
   occupancy: number;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  monthlyRate: number;
+
   // Computed property for capacity (same as bedCount for now)
   get capacity(): number {
     return this.bedCount;
   }
 
-  // Computed property for rent (would need to be fetched from room type)
+  // Computed property for rent (returns stored rate or 0)
   get rent(): number {
-    return 0; // Placeholder - should be calculated from room type
+    return this.monthlyRate || 0;
   }
 
   @Column({ type: 'varchar', nullable: true })

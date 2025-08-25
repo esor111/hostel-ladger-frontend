@@ -35,6 +35,9 @@ export class CreateRoomDto {
   id?: string;
 
   @IsString()
+  name: string;
+
+  @IsString()
   roomNumber: string;
 
   @IsOptional()

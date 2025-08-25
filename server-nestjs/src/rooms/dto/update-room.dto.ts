@@ -6,6 +6,10 @@ import { CreateRoomDto, CreateRoomAmenityDto, CreateRoomLayoutDto } from './crea
 export class UpdateRoomDto extends PartialType(CreateRoomDto) {
   @IsOptional()
   @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsString()
   roomNumber?: string;
 
   @IsOptional()

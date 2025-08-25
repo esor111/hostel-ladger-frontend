@@ -56,38 +56,54 @@ export const RoomConfiguration = () => {
   const roomTypes = ["Dormitory", "Private", "Capsule"];
   const genderOptions = ["Mixed", "Male", "Female"];
   const availableAmenities = [
-    "Wi-Fi", "Lockers", "Reading Light", "Private Bathroom", 
+    "Wi-Fi", "Lockers", "Reading Light", "Private Bathroom",
     "AC", "TV", "Power Outlet", "Personal Locker", "Bunk Bed"
   ];
 
   const handleAddRoom = async () => {
     // Validate required fields
+    if (!newRoom.name.trim()) {
+      toast.error("Room name is required!");
+      return;
+    }
+
     if (!newRoom.roomNumber.trim()) {
       toast.error("Room number is required!");
       return;
     }
-    
-    if (!newRoom.name.trim()) {
-      toast.error("Room name is required!");
+
+    // Validate capacity (bedCount)
+    if (!newRoom.bedCount || newRoom.bedCount < 1 || newRoom.bedCount > 10) {
+      toast.error("Bed count must be between 1 and 10!");
+      return;
+    }
+
+    // Validate rent (baseRate)
+    if (newRoom.baseRate < 0) {
+      toast.error("Base rate cannot be negative!");
       return;
     }
 
     try {
       console.log('🏠 Creating new room via API...');
       const roomData = {
-        ...newRoom,
-        monthlyRate: newRoom.baseRate,
-        dailyRate: Math.round(newRoom.baseRate / 30),
-        amenities: newRoom.amenities,
+        name: newRoom.name, // Required field for the database
+        roomNumber: newRoom.roomNumber,
+        type: newRoom.type,
+        capacity: Number(newRoom.bedCount), // Ensure it's a number
+        rent: Number(newRoom.baseRate), // Ensure it's a number
         status: "Active",
+        amenities: newRoom.amenities,
+        isActive: true
       };
-      
+
+      console.log('📤 Sending room data:', roomData);
       const createdRoom = await roomService.createRoom(roomData);
       console.log('✅ Room created:', createdRoom);
-      
+
       // Refresh the rooms list
       await fetchRooms();
-      
+
       // Reset form
       setNewRoom({
         name: "",
@@ -118,10 +134,10 @@ export const RoomConfiguration = () => {
         console.log('🎨 Saving room layout via API...');
         await roomService.updateRoom(selectedRoomForDesign, { layout });
         console.log('✅ Room layout saved');
-        
+
         // Refresh the rooms list to get updated data
         await fetchRooms();
-        
+
         setShowRoomDesigner(false);
         setSelectedRoomForDesign(null);
         toast.success("Room layout saved successfully!");
@@ -153,33 +169,50 @@ export const RoomConfiguration = () => {
 
   const handleUpdateRoom = async () => {
     if (!editingRoom) return;
-    
+
     // Validate required fields
-    if (!newRoom.roomNumber.trim()) {
-      toast.error("Room number is required!");
-      return;
-    }
-    
     if (!newRoom.name.trim()) {
       toast.error("Room name is required!");
       return;
     }
-    
+
+    if (!newRoom.roomNumber.trim()) {
+      toast.error("Room number is required!");
+      return;
+    }
+
+    // Validate capacity (bedCount)
+    if (!newRoom.bedCount || newRoom.bedCount < 1 || newRoom.bedCount > 10) {
+      toast.error("Bed count must be between 1 and 10!");
+      return;
+    }
+
+    // Validate rent (baseRate)
+    if (newRoom.baseRate < 0) {
+      toast.error("Base rate cannot be negative!");
+      return;
+    }
+
     try {
       console.log('🏠 Updating room via API...');
       const roomData = {
-        ...newRoom,
-        monthlyRate: newRoom.baseRate,
-        dailyRate: Math.round(newRoom.baseRate / 30),
+        name: newRoom.name, // Required field for the database
+        roomNumber: newRoom.roomNumber,
+        type: newRoom.type,
+        capacity: Number(newRoom.bedCount), // Ensure it's a number
+        rent: Number(newRoom.baseRate), // Ensure it's a number
+        status: "Active",
         amenities: newRoom.amenities,
+        isActive: true
       };
-      
+
+      console.log('📤 Sending room update data:', roomData);
       await roomService.updateRoom(editingRoom.id, roomData);
       console.log('✅ Room updated');
-      
+
       // Refresh the rooms list
       await fetchRooms();
-      
+
       // Reset form and editing state
       setNewRoom({
         name: "",
@@ -209,10 +242,10 @@ export const RoomConfiguration = () => {
       console.log('🗑️ Deleting room via API...');
       await roomService.deleteRoom(room.id);
       console.log('✅ Room deleted');
-      
+
       // Refresh the rooms list
       await fetchRooms();
-      
+
       toast.success("Room deleted successfully!");
     } catch (error) {
       console.error('❌ Error deleting room:', error);
@@ -295,7 +328,7 @@ export const RoomConfiguration = () => {
                 <Label>Room Name</Label>
                 <Input
                   value={newRoom.name}
-                  onChange={(e) => setNewRoom({...newRoom, name: e.target.value})}
+                  onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })}
                   placeholder="e.g., Dorm A - Mixed"
                 />
               </div>
@@ -303,14 +336,14 @@ export const RoomConfiguration = () => {
                 <Label>Room Number <span className="text-red-500">*</span></Label>
                 <Input
                   value={newRoom.roomNumber}
-                  onChange={(e) => setNewRoom({...newRoom, roomNumber: e.target.value})}
+                  onChange={(e) => setNewRoom({ ...newRoom, roomNumber: e.target.value })}
                   placeholder="e.g., A-101, B-205, C-301"
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label>Room Type</Label>
-                <Select value={newRoom.type} onValueChange={(value) => setNewRoom({...newRoom, type: value})}>
+                <Select value={newRoom.type} onValueChange={(value) => setNewRoom({ ...newRoom, type: value })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -326,13 +359,14 @@ export const RoomConfiguration = () => {
                 <Input
                   type="number"
                   value={newRoom.bedCount}
-                  onChange={(e) => setNewRoom({...newRoom, bedCount: parseInt(e.target.value)})}
+                  onChange={(e) => setNewRoom({ ...newRoom, bedCount: parseInt(e.target.value) || 1 })}
                   min="1"
+                  max="10"
                 />
               </div>
               <div className="space-y-2">
                 <Label>Gender Type</Label>
-                <Select value={newRoom.gender} onValueChange={(value) => setNewRoom({...newRoom, gender: value})}>
+                <Select value={newRoom.gender} onValueChange={(value) => setNewRoom({ ...newRoom, gender: value })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -348,8 +382,8 @@ export const RoomConfiguration = () => {
                 <Input
                   type="number"
                   value={newRoom.baseRate}
-                  onChange={(e) => setNewRoom({...newRoom, baseRate: parseInt(e.target.value)})}
-                  min="3000"
+                  onChange={(e) => setNewRoom({ ...newRoom, baseRate: parseFloat(e.target.value) || 0 })}
+                  min="0"
                   placeholder="e.g., 8000"
                 />
               </div>
@@ -393,24 +427,24 @@ export const RoomConfiguration = () => {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     onClick={() => openRoomDesigner(room.id)}
                     className="text-purple-600 hover:text-purple-700"
                   >
                     <Layout className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     onClick={() => handleEditRoom(room)}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
+                  <Button
+                    size="sm"
+                    variant="outline"
                     className="text-red-600 hover:text-red-700"
                     onClick={() => handleDeleteRoom(room)}
                   >
@@ -435,7 +469,7 @@ export const RoomConfiguration = () => {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <div className="text-sm text-gray-600 mb-1">Monthly Rate</div>
                   <div className="text-xl font-bold text-blue-600">
@@ -469,8 +503,8 @@ export const RoomConfiguration = () => {
                 </div>
 
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full" 
+                  <div
+                    className="bg-blue-600 h-2 rounded-full"
                     style={{ width: `${(room.occupancy / room.bedCount) * 100}%` }}
                   ></div>
                 </div>
