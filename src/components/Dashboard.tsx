@@ -355,7 +355,7 @@ const Dashboard: React.FC = () => {
                 <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-900">New student enrolled</p>
-                  <p className="text-xs text-gray-500">2 hours ago</p>
+                  <p className="text-xs text-gray-500">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                 </div>
               </div>
               
@@ -363,7 +363,7 @@ const Dashboard: React.FC = () => {
                 <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-900">Payment received</p>
-                  <p className="text-xs text-gray-500">4 hours ago</p>
+                  <p className="text-xs text-gray-500">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                 </div>
               </div>
               
@@ -371,7 +371,7 @@ const Dashboard: React.FC = () => {
                 <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-900">Room maintenance completed</p>
-                  <p className="text-xs text-gray-500">1 day ago</p>
+                  <p className="text-xs text-gray-500">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                 </div>
               </div>
             </div>

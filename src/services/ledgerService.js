@@ -289,7 +289,11 @@ export const ledgerService = {
           student: `${breakdown.count} ${type} entries`,
           type: type,
           amount: breakdown.totalDebits - breakdown.totalCredits,
-          timeAgo: 'Recent'
+          timeAgo: new Date().toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          })
         }))
       };
     } catch (error) {
