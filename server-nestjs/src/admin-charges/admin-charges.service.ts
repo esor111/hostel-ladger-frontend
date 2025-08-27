@@ -220,13 +220,13 @@ export class AdminChargesService {
 
     const pendingAmount = await this.adminChargeRepository
       .createQueryBuilder("charge")
-      .select("SUM(charge.amount)", "total")
+      .select("SUM(CAST(charge.amount AS DECIMAL))", "total")
       .where("charge.status = :status", { status: AdminChargeStatus.PENDING })
       .getRawOne();
 
     const appliedAmount = await this.adminChargeRepository
       .createQueryBuilder("charge")
-      .select("SUM(charge.amount)", "total")
+      .select("SUM(CAST(charge.amount AS DECIMAL))", "total")
       .where("charge.status = :status", { status: AdminChargeStatus.APPLIED })
       .getRawOne();
 
@@ -252,11 +252,12 @@ export class AdminChargesService {
         'student.phone',
         'student.email',
         'room.roomNumber',
-        'SUM(CASE WHEN ledger.balanceType = \'Dr\' THEN ledger.balance ELSE -ledger.balance END) as currentBalance'
+        'SUM(ledger.debit - ledger.credit) as currentBalance'
       ])
       .where('student.status = :status', { status: 'Active' })
+      .andWhere('ledger.isReversed = :isReversed', { isReversed: false })
       .groupBy('student.id, room.roomNumber')
-      .having('SUM(CASE WHEN ledger.balanceType = \'Dr\' THEN ledger.balance ELSE -ledger.balance END) > 0')
+      .having('SUM(ledger.debit - ledger.credit) > 0')
       .getRawMany();
 
     return overdueStudents.map(student => {
@@ -294,7 +295,7 @@ export class AdminChargesService {
       .getMany();
 
     const totalCharges = todayCharges.length;
-    const totalAmount = todayCharges.reduce((sum, charge) => sum + charge.amount, 0);
+    const totalAmount = todayCharges.reduce((sum, charge) => sum + parseFloat(charge.amount?.toString() || '0'), 0);
     const studentsCharged = new Set(todayCharges.map(charge => charge.studentId)).size;
 
     return {

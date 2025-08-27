@@ -83,3 +83,40 @@ filter
 
 
 
+
+
+we havent done the actual stuff yet right just test the stuff and make a scalelaton
+
+
+Built with tests first (bulletproof reliability)
+No over-engineering (only what's needed)
+Production-ready from day one
+Easy to add new features
+
+a complete, battle-tested chat system that you can deploy today and start building your chat application on top of. The foundation is solid, tested, and ready to scale.
+
+
+
+after finising the this task what are things i can expect from this system 
+
+
+after this we are going to do a after db setup test, redis setup test, socket setu test and so on
+then we are doign the coversation like 1-1 1-busines, group something like that
+
+test case pass
+actual minimal inplementation also pass 
+we are goiong to be sure that everthing works and we make a solid foundation and we can start building chat application on top of it (the actual system)
+
+we also have the route and response like that things right
+
+
+we are going to make a sequence/oder to what to do and test that thing we are not goiing to do the furtuhur without completely make that thing work
+main thing is sequence/order that should be thooughtful we need make this such way so easly testable incremental (i dont know what is going be that  i just give what my instinc say  your tassk is to figureout that)
+actual minimal inplementation also pass 
+we are goiong to be sure that everthing works and we make a solid foundation and we can start building chat application on top of it (the actual system)
+
+
+
+we are going to make a sequence/oder to what to do and test that thing we are not goiing to do the furtuhur without completely make that thing work
+main thing is sequence/order that should be thooughtful we need make this such way so easly testable incremental (i dont know what is going be that  i just give what my instinc say  your tassk is to figureout that)
+system should be a solid blue print 
