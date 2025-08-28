@@ -929,6 +929,7 @@ export class SeedService {
     // Then seed actual discounts
     const discounts = [
       {
+        id: `DSC${Date.now()}001`,
         studentId: students[0].id,
         discountTypeId: discountTypes[0].id,
         amount: 200,
@@ -946,6 +947,7 @@ export class SeedService {
         referenceId: invoices[0].id,
       },
       {
+        id: `DSC${Date.now()}002`,
         studentId: students[2].id,
         discountTypeId: discountTypes[1].id,
         amount: 600,
