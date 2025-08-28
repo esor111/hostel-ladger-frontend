@@ -124,7 +124,7 @@ export class SeedService {
     // Admin charges repository
     @InjectRepository(AdminCharge)
     private adminChargeRepository: Repository<AdminCharge>
-  ) {}
+  ) { }
 
   async checkSeedStatus() {
     const status = {
@@ -424,33 +424,33 @@ export class SeedService {
 
     const students = [
       {
-        name: "Ajay Sharma",
+        name: "Ishwor",
         phone: "+9779841234567",
-        email: "ajay.sharma@example.com",
+        email: "ishwor@example.com",
         enrollmentDate: new Date("2024-01-15"),
         status: StudentStatus.ACTIVE,
         address: "Kathmandu, Nepal",
       },
       {
-        name: "Ishwor Poudel",
+        name: "Ayush",
         phone: "+9779841234568",
-        email: "ishwor.poudel@example.com",
+        email: "ayush@example.com",
         enrollmentDate: new Date("2024-01-20"),
         status: StudentStatus.ACTIVE,
         address: "Pokhara, Nepal",
       },
       {
-        name: "Prashun Thapa",
+        name: "Ajay",
         phone: "+9779841234569",
-        email: "prashun.thapa@example.com",
+        email: "ajay@example.com",
         enrollmentDate: new Date("2024-02-01"),
         status: StudentStatus.ACTIVE,
         address: "Lalitpur, Nepal",
       },
       {
-        name: "Ayush Karki",
+        name: "Prashun Thapa",
         phone: "+9779841234570",
-        email: "ayush.karki@example.com",
+        email: "prashun.thapa@example.com",
         enrollmentDate: new Date("2024-02-10"),
         status: StudentStatus.ACTIVE,
         address: "Bhaktapur, Nepal",
@@ -518,10 +518,10 @@ export class SeedService {
     // Add contacts
     const contacts = [];
     const guardianData = [
-      { name: "Ram Sharma", phone: "+9779841234500" },
-      { name: "Sita Poudel", phone: "+9779841234501" },
-      { name: "Krishna Thapa", phone: "+9779841234502" },
-      { name: "Gita Karki", phone: "+9779841234503" },
+      { name: "Ram Bahadur", phone: "+9779841234500" },
+      { name: "Sita Devi", phone: "+9779841234501" },
+      { name: "Krishna Prasad", phone: "+9779841234502" },
+      { name: "Gita Thapa", phone: "+9779841234503" },
       { name: "Hari Adhikari", phone: "+9779841234504" },
       { name: "Maya Shrestha", phone: "+9779841234505" },
       { name: "Robert Doe", phone: "+1234567800" },
@@ -1481,14 +1481,14 @@ export class SeedService {
 
     // Get some students to create charges for
     const students = await this.studentRepository.find({ take: 5 });
-    
+
     if (students.length === 0) {
       this.logger.warn("No students found, cannot seed admin charges");
       return { count: 0, data: [] };
     }
 
     const adminCharges = [];
-    
+
     // Create charges based on available students
     if (students.length > 0) {
       adminCharges.push({
@@ -1504,7 +1504,7 @@ export class SeedService {
         adminNotes: "Applied due to payment delay of 15 days"
       });
     }
-    
+
     if (students.length > 1) {
       adminCharges.push({
         studentId: students[1].id,
@@ -1519,7 +1519,7 @@ export class SeedService {
         adminNotes: "Window replacement cost"
       });
     }
-    
+
     if (students.length > 2) {
       adminCharges.push({
         studentId: students[2].id,
@@ -1535,7 +1535,7 @@ export class SeedService {
         adminNotes: "Premium laundry service for 6 months"
       });
     }
-    
+
     // Add more charges using the first student if we have at least one
     if (students.length > 0) {
       adminCharges.push({
@@ -1550,7 +1550,7 @@ export class SeedService {
         createdBy: "admin",
         adminNotes: "Guest stayed for 2 nights"
       });
-      
+
       adminCharges.push({
         studentId: students[0].id,
         title: "Key Replacement",
