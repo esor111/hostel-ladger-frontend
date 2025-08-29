@@ -93,4 +93,9 @@ export class CreateStudentDto {
   @IsOptional()
   @IsString()
   bookingRequestId?: string;
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.trim())
+  bedNumber?: string;
 }

@@ -5,6 +5,7 @@ import { Student, StudentStatus } from './entities/student.entity';
 import { StudentContact, ContactType } from './entities/student-contact.entity';
 import { StudentAcademicInfo } from './entities/student-academic-info.entity';
 import { StudentFinancialInfo, FeeType } from './entities/student-financial-info.entity';
+import { ConfigureStudentDto } from './dto/configure-student.dto';
 
 @Injectable()
 export class StudentsService {
@@ -480,6 +481,98 @@ export class StudentsService {
       success: true,
       message: 'Student deleted successfully',
       studentId: id
+    };
+  }
+
+  async configureStudent(studentId: string, configData: any) {
+    const student = await this.findOne(studentId);
+    
+    // Create/update financial info records
+    const financialEntries = [];
+    
+    if (configData.baseMonthlyFee) {
+      financialEntries.push({
+        studentId,
+        feeType: FeeType.BASE_MONTHLY,
+        amount: configData.baseMonthlyFee,
+        effectiveFrom: new Date(),
+        isActive: true
+      });
+    }
+
+    if (configData.laundryFee) {
+      financialEntries.push({
+        studentId,
+        feeType: FeeType.LAUNDRY,
+        amount: configData.laundryFee,
+        effectiveFrom: new Date(),
+        isActive: true
+      });
+    }
+
+    if (configData.foodFee) {
+      financialEntries.push({
+        studentId,
+        feeType: FeeType.FOOD,
+        amount: configData.foodFee,
+        effectiveFrom: new Date(),
+        isActive: true
+      });
+    }
+
+    if (configData.wifiFee) {
+      financialEntries.push({
+        studentId,
+        feeType: FeeType.UTILITIES,
+        amount: configData.wifiFee,
+        effectiveFrom: new Date(),
+        isActive: true,
+        notes: 'WiFi Fee'
+      });
+    }
+
+    if (configData.maintenanceFee) {
+      financialEntries.push({
+        studentId,
+        feeType: FeeType.MAINTENANCE,
+        amount: configData.maintenanceFee,
+        effectiveFrom: new Date(),
+        isActive: true
+      });
+    }
+
+    if (configData.securityDeposit) {
+      financialEntries.push({
+        studentId,
+        feeType: FeeType.SECURITY_DEPOSIT,
+        amount: configData.securityDeposit,
+        effectiveFrom: new Date(),
+        isActive: true
+      });
+    }
+
+    // Save financial entries
+    if (financialEntries.length > 0) {
+      await this.financialRepository.save(financialEntries);
+    }
+
+    // Create admin charges for additional charges
+    if (configData.additionalCharges && configData.additionalCharges.length > 0) {
+      // This will be handled by AdminChargesService when we integrate
+      // For now, we'll store them as notes in financial info
+    }
+
+    // Mark student as configured
+    await this.studentRepository.update(studentId, {
+      isConfigured: true
+    });
+
+    return {
+      success: true,
+      message: 'Student configuration completed successfully',
+      studentId,
+      configurationDate: new Date(),
+      totalMonthlyFee: financialEntries.reduce((sum, entry) => sum + entry.amount, 0)
     };
   }
 

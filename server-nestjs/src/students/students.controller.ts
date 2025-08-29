@@ -183,4 +183,17 @@ export class StudentsController {
       data: result
     };
   }
+
+  @Post(':id/configure')
+  @ApiOperation({ summary: 'Configure student charges' })
+  @ApiResponse({ status: 200, description: 'Student configured successfully' })
+  async configureStudent(@Param('id') id: string, @Body(ValidationPipe) configData: any) {
+    const result = await this.studentsService.configureStudent(id, configData);
+    
+    // Return EXACT same format as current Express API
+    return {
+      status: HttpStatus.OK,
+      data: result
+    };
+  }
 }

@@ -47,6 +47,13 @@ export class Student extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   address: string;
 
+  @Column({ name: 'bed_number', nullable: true })
+  bedNumber: string;
+
+  @Column({ name: 'is_configured', default: false })
+  isConfigured: boolean;
+
+
   // Foreign Keys
   @Column({ name: 'room_id', nullable: true })
   roomId: string;
